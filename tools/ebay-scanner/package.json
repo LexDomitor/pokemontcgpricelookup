@@ -1,0 +1,13 @@
+{
+  "name": "price-lookup-ebay-helper",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "login": "node login.js"
+  },
+  "dependencies": {
+    "playwright-core": "1.58.2"
+  }
+}

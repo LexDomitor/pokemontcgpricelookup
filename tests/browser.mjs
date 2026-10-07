@@ -1,0 +1,17 @@
+import {chromium} from 'playwright-core';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {createApp} from '../server.mjs';
+const server=createApp();await new Promise(r=>server.listen(0,'127.0.0.1',r));const base='http://127.0.0.1:'+server.address().port;
+const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
+try{
+ const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[],requests=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.route('**/*',r=>{const u=new URL(r.request().url());requests.push(u.href);if(u.pathname==='/api/tcg')return r.fulfill({json:{productId:123,product:{name:'Pikachu',set:'Base Set',number:'58/102',market:12,lang:'EN'},listings:[{price:10,ship:1,total:11,condition:'Near Mint',seller:'Test store',qty:3}],sales:[{price:12,ship:0,total:12,qty:1,condition:'Near Mint',date:new Date().toISOString()}],alts:[],count:1,total:1,url:'https://www.tcgplayer.com/product/123'}});if(u.hostname!=='127.0.0.1')return r.fulfill({body:''});return r.continue();});
+ await page.goto(base);await page.locator('[data-do="look"]').click();await page.locator('#wz-q').fill('Pikachu');await page.locator('#wz-next').click();await page.locator('.wz-body [data-src="tcgplayer"]').click();await page.locator('#wz-run').click();await page.waitForTimeout(700);assert(requests.some(u=>u.includes('/api/tcg?')));assert((await page.locator('body').innerText()).includes('Pikachu'));
+ await page.locator('#grab-page').click();await page.waitForFunction(()=>JSON.parse(localStorage.getItem('ptcg-price-ledger')||'[]').length===1);
+ await page.locator('#lg-name').fill('Test collection');await page.locator('#lg-live').click();await page.waitForFunction(()=>JSON.parse(localStorage.getItem('ptcg-saved-sheets')||'[]').length===1);await page.reload();assert.equal(await page.locator('#lg-name').inputValue(),'Test collection');assert((await page.locator('#body').innerText()).includes('Pikachu'));
+ await page.locator('#lg-export').click();const downloading=page.waitForEvent('download');await page.getByRole('button',{name:/Download .json/}).click();const downloaded=await downloading;const data=JSON.parse(await readFile(await downloaded.path(),'utf8'));assert(JSON.stringify(data).includes('Pikachu'));
+ await page.locator('#db-btn').click();assert((await page.locator('#db-list').innerText()).includes('Test collection'));await page.locator('#db-x').click();
+ assert.equal(await page.locator('#pw-msg').count(),0);assert.equal(await page.locator('script[src="gate.js"]').count(),0);assert(!requests.some(u=>/arcane9labs|chronovist|\/api\/(me|msg|ocr)/.test(u)));assert.deepEqual(errors,[]);
+ await page.screenshot({path:process.env.SCREENSHOT_PATH||'test-results/desktop.png',fullPage:true});const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});mobile.on('pageerror',e=>errors.push(e.message));await mobile.goto(base);await mobile.waitForTimeout(150);assert(await mobile.locator('body').evaluate(el=>el.classList.contains('mob')));await mobile.screenshot({path:'test-results/mobile.png',fullPage:true});assert.deepEqual(errors,[]);console.log('Browser passed: guided lookup, local save/reload/list, independent backend, desktop and mobile.');
+}finally{await browser.close();await new Promise(r=>server.close(r));}

@@ -1,0 +1,1391 @@
+html.pre-light body{background:#fdfbf7;color:#171514}
+
+    *{ margin:0; padding:0; box-sizing:border-box; }
+    *{ scrollbar-width:thin; scrollbar-color:var(--accent-strong) transparent; }
+    ::-webkit-scrollbar{ width:9px; height:9px; }
+    ::-webkit-scrollbar-track{ background:transparent; }
+    ::-webkit-scrollbar-thumb{ background:var(--accent-strong); border-radius:8px; border:2px solid transparent; background-clip:padding-box; }
+    body{
+        --bg1:#0c0c10; --bg2:#15151b; --panel:#17171d; --panel2:#20202a; --border:#2f2f3b; --text:#ece9f2; --dim:#8f8fa3; --field:#121218;
+        --ok:#7bd88f; --warn:#ff8f5a; --err:#ff6b6b;
+        --accent:#ff8c1a; --accent-soft:rgba(255,138,43,0.15); --accent-strong:rgba(255,138,43,0.28);
+    }
+    /* Retro Cassette. The whole tool is written against these names, so the style is a set of
+       values rather than a second stylesheet — the front door's cream and near-black, its one
+       orange, and a border dark enough to be a drawn line rather than a suggestion. */
+    body.light{ --bg1:#fdfbf7; --bg2:#f6f2ea; --panel:#ffffff; --panel2:#f6f2ea;
+                --border:#171514; --text:#171514; --dim:#6d6660; --field:#fdfbf7;
+                --accent:#f2661d; --accent-soft:#fdece1; --accent-strong:#fad3ba;
+                --ok:#2f8f4e; --warn:#b8560d; --err:#c9331c;
+                background-image:radial-gradient(circle, #f6c6a4 2px, transparent 2.4px);
+                background-size:26px 26px; }
+    /* A line this dark wants to be thin, or every panel edge shouts. Where the front door uses
+       three pixels it is on something the size of a button; here it is on forty rows at once. */
+    body.light .btn, body.light .cb, body.light input, body.light select, body.light textarea{
+        border-width:1.5px;
+    }
+    body.light .btn{ font-weight:800; }
+    body.light .btn:not(.ghost){ background:var(--accent); color:#fff; border-color:var(--text); }
+    body.light .btn.ghost{ background:#fff; color:var(--text); border-color:#c9c1b6; }
+    body.light .btn.ghost:hover{ border-color:var(--text); background:var(--accent-soft); }
+    /* An accent that is a fill rather than a tint needs its text to come off it. */
+    body.light .lg-menu button:hover{ background:var(--accent-soft); color:var(--text); }
+    body.light #toast.top{ color:#fff; }
+    body[data-accent="gold"]   { --accent:#ff8c1a; --accent-soft:rgba(255,138,43,0.15); --accent-strong:rgba(255,138,43,0.28); }
+    body[data-accent="red"]    { --accent:#ff5c5c; --accent-soft:rgba(255,92,92,0.15);  --accent-strong:rgba(255,92,92,0.28); }
+    body[data-accent="orange"] { --accent:#ff9838; --accent-soft:rgba(255,152,56,0.15); --accent-strong:rgba(255,152,56,0.28); }
+    body[data-accent="yellow"] { --accent:#ffab35; --accent-soft:rgba(255,225,77,0.15); --accent-strong:rgba(255,225,77,0.28); }
+    body[data-accent="green"]  { --accent:#4ce08a; --accent-soft:rgba(76,224,138,0.15); --accent-strong:rgba(76,224,138,0.28); }
+    body[data-accent="blue"]   { --accent:#4c9dff; --accent-soft:rgba(76,157,255,0.15); --accent-strong:rgba(76,157,255,0.28); }
+    body[data-accent="purple"] { --accent:#a882ff; --accent-soft:rgba(168,130,255,0.16);--accent-strong:rgba(168,130,255,0.3); }
+    body[data-accent="magenta"]{ --accent:#ff4dd2; --accent-soft:rgba(255,77,210,0.15); --accent-strong:rgba(255,77,210,0.28); }
+    body[data-accent="pink"]   { --accent:#ff86c2; --accent-soft:rgba(255,134,194,0.16);--accent-strong:rgba(255,134,194,0.3); }
+    html{ font-size:16px; }
+    /* Locked to the viewport — the embed must always be on screen, so nothing here scrolls the page. */
+    html,body{ height:100%; height:100dvh; overflow:hidden; overscroll-behavior:none; }
+    body{ background:radial-gradient(1100px 620px at 50% -12%, var(--accent-soft), var(--bg2) 44%, var(--bg1) 100%);
+        color:var(--text); font-family:'Inter',-apple-system,sans-serif; overflow:hidden;
+        touch-action:manipulation; -webkit-text-size-adjust:100%; position:fixed; inset:0; }
+    /* A third of the width. It carries the controls and the figures now, so it needs the room —
+       and the sheet on the left is a table, which reads fine narrower. */
+    #app{ display:grid; grid-template-columns:minmax(0,2fr) minmax(320px,1fr);
+          grid-template-rows:auto 1fr; height:100%; transform-origin:top left; }
+    /* The title bar runs the full width of row one and both columns sit under it. #side used to
+       span every row, which put it over the bar rather than beneath it. */
+    #lookup{ grid-column:1 / -1; grid-row:1; }
+    #body{ grid-column:1; grid-row:2; min-height:0; }
+    #side{ grid-column:2; grid-row:2; min-height:0; }
+    /* condition filter — maps straight onto TCGplayer's Condition= URL segment */
+    .cb-set{ display:flex; gap:4px; flex-shrink:0; align-items:center; }
+    .cb{ height:32px; padding:0 10px; display:flex; align-items:center; border-radius:7px; border:1px solid var(--border); background:var(--panel2); color:var(--dim);
+        font-size:0.62rem; letter-spacing:0.7px; text-transform:uppercase; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; user-select:none; }
+    .cb:hover{ color:var(--accent); border-color:var(--accent); }
+    .cb.on{ color:var(--accent); border-color:var(--accent); background:var(--accent-soft); }
+    /* competing offers */
+    .co-h{ border-top:1px solid var(--border); }
+    .co-hint{ margin-left:auto; font-size:0.56rem; color:var(--dim); text-transform:none; letter-spacing:0.2px; font-weight:500; }
+    .co-btn{ margin-left:auto; height:22px; padding:0 8px; border-radius:6px; border:1px solid var(--border); background:var(--panel2);
+        color:var(--dim); font-size:0.58rem; cursor:pointer; font-family:inherit; text-transform:none; letter-spacing:0.2px; font-weight:600; }
+    .co-btn:hover{ color:var(--accent); border-color:var(--accent); }
+    #co-wrap{ flex:1; min-height:0; overflow-y:auto; padding:7px; overscroll-behavior:contain; }
+    #co-out{ margin-top:0; }
+    #co-paste,#co-paste2{ width:100%; height:60px; flex-shrink:0; background:var(--field); border:1px dashed var(--accent); border-radius:8px;
+        color:var(--text); padding:8px 10px; font-size:0.72rem; font-family:inherit; outline:none; resize:vertical; }
+    #co-paste:focus,#co-paste2:focus{ border-color:var(--accent); }
+    .co-grp{ margin-top:8px; }
+    /* Low / Avg / High panels */
+    .co-stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:5px; margin:5px 0 7px; }
+    .co-fair{ display:flex; align-items:center; gap:8px; margin:0 0 8px; padding:7px 10px;
+              border-radius:9px; cursor:help;
+              border:1px solid var(--accent); background:var(--accent-soft); }
+    .co-fair .k{ font:800 0.5rem 'Inter',sans-serif; letter-spacing:1.3px; text-transform:uppercase;
+                 color:var(--accent); }
+    .co-fair .v{ font:700 0.92rem ui-monospace,Menlo,Consolas,monospace; color:var(--accent);
+                 font-variant-numeric:tabular-nums; }
+    .co-fair .n{ font-size:0.56rem; color:var(--dim); margin-left:auto; text-align:right;
+                 line-height:1.3; }
+    .co-stat{ border:1px solid var(--border); border-radius:8px; background:var(--panel2); padding:5px 6px; text-align:center; }
+    .co-stat .k{ font-size:0.5rem; letter-spacing:1.4px; text-transform:uppercase; color:var(--dim); font-weight:800; }
+    .co-stat .v{ font-size:0.92rem; font-weight:800; margin-top:3px; font-variant-numeric:tabular-nums; color:var(--text); }
+    .co-stat.lo{ border-color:var(--ok); }      .co-stat.lo .v{ color:var(--ok); }
+    .co-stat.av{ border-color:var(--accent); background:var(--accent-soft); } .co-stat.av .v{ color:var(--accent); }
+    .co-stat.hi{ border-color:var(--warn); }    .co-stat.hi .v{ color:var(--warn); }
+    .co-sel{ font-size:0.54rem; color:var(--dim); margin-bottom:4px; display:flex; align-items:center; gap:8px; }
+    .co-sel button{ background:none; border:1px solid var(--border); border-radius:5px; color:var(--dim);
+        font-size:0.55rem; padding:2px 7px; cursor:pointer; font-family:inherit; }
+    .co-sel button:hover{ color:var(--accent); border-color:var(--accent); }
+    .co-gh{ display:flex; align-items:baseline; gap:7px; font-size:0.56rem; letter-spacing:1.4px; text-transform:uppercase; color:var(--dim); font-weight:800; margin-bottom:5px; }
+    .co-gh .n{ color:var(--dim); font-weight:600; text-transform:none; letter-spacing:0; font-size:0.6rem; }
+    .co-row{ display:flex; align-items:center; gap:6px; padding:3px 6px; border-bottom:1px solid var(--border);
+        font-size:0.72rem; cursor:pointer; border-radius:6px; user-select:none; }
+    .co-row:hover{ background:var(--panel2); }
+    .co-row.off{ opacity:0.34; }
+    .co-row.off .amt{ text-decoration:line-through; }
+    .co-row .tick{ width:16px; flex-shrink:0; color:var(--accent); font-size:0.66rem;
+        border:none; background:none; padding:0; cursor:pointer; line-height:1; font-family:inherit; }
+    .co-row .tick:hover{ transform:scale(1.25); }
+    /* Only the ones that can be opened say they can be. */
+    .co-row.has-link{ cursor:pointer; }
+    .co-row.has-link:hover .amt{ text-decoration:underline; }
+    .co-row.off .tick{ color:var(--dim); }
+    .co-row.lo .amt{ color:var(--ok); }
+    .co-row.hi .amt{ color:var(--warn); }
+    .co-row:last-child{ border-bottom:none; }
+    .co-row .ix{ color:var(--dim); font-size:0.6rem; width:15px; flex-shrink:0; }
+    .co-row .amt{ font-weight:800; color:var(--text); font-variant-numeric:tabular-nums; }
+    .co-row .brk{ color:var(--dim); font-size:0.6rem; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .co-row .star{ color:var(--accent); flex-shrink:0; }
+    .co-none{ font-size:0.66rem; color:var(--dim); padding:5px 7px; }
+/* Both buttons share a face. One puts a card on the sheet, the other goes back up to the list
+   it came from, and they read as a pair because they are one. Save sits last in the column —
+   order rather than markup surgery, since the flex column decides the running order anyway. */
+    #grab-page, #alt-again{ margin:8px 8px 0; padding:9px 8px; line-height:1.25; border-radius:9px;
+        border:1px solid var(--accent); background:var(--accent-soft);
+        color:var(--accent); font-size:0.76rem; letter-spacing:1.3px; text-transform:uppercase; font-weight:800;
+        cursor:pointer; font-family:inherit; flex-shrink:0; }
+    #grab-page:hover, #alt-again:hover{ background:var(--accent-strong); }
+    #grab-page:disabled{ opacity:0.55; cursor:default; }
+    /* The end of the job, so it looks like it: above the figures rather than under them, and
+       big enough to be the thing you reach for. The same width as the button beside it, and on
+       one line \u2014 two buttons of different widths read as two different kinds of thing. */
+    #grab-page{ order:15; display:block; margin:10px auto; width:calc(100% - 16px);
+                max-width:280px; padding:10px 12px; font-size:0.78rem; text-align:center;
+                white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    #co-wrap{ order:50; }
+    #alt-again{ order:10; }
+    #ask{ order:1; }
+    #alt-over{ position:absolute; inset:0; display:none; align-items:center; justify-content:center;
+        background:rgba(6,6,10,0.62); backdrop-filter:blur(2px); padding:18px; z-index:6; }
+    #alt-over.on{ display:flex; }
+    .ao-card{ width:min(430px,100%); max-height:100%; display:flex; flex-direction:column; overflow:hidden;
+        background:var(--panel); border:1px solid var(--accent); border-radius:13px; box-shadow:0 22px 60px rgba(0,0,0,0.6); }
+    .ao-h{ display:flex; align-items:center; padding:12px 15px; border-bottom:1px solid var(--border);
+        font-size:0.68rem; letter-spacing:2px; text-transform:uppercase; color:var(--accent); font-weight:800; }
+    .ao-h button{ margin-left:auto; background:none; border:1px solid var(--border); border-radius:6px;
+        color:var(--dim); cursor:pointer; padding:3px 9px; font-family:inherit; font-size:0.7rem; }
+    .ao-h button:hover{ color:var(--err); border-color:var(--err); }
+    .ao-msg{ padding:11px 15px; font-size:0.73rem; line-height:1.65; color:var(--dim); border-bottom:1px solid var(--border); }
+    .ao-msg b{ color:var(--accent); }
+    #ao-list{ overflow-y:auto; padding:9px; }
+
+    .alt{ display:flex; align-items:center; gap:9px; width:100%; text-align:left; margin-bottom:5px; padding:9px 11px;
+        border:1px solid var(--border); border-radius:9px; background:var(--panel2); color:var(--dim);
+        font-size:0.76rem; cursor:pointer; font-family:inherit; }
+    .alt:hover{ color:var(--accent); border-color:var(--accent); }
+    .alt.on{ color:var(--accent); border-color:var(--accent); background:var(--accent-soft); }
+    /* Big enough to actually tell two arts apart, which is the whole reason it is here. */
+    .alt .ai{ width:64px; height:90px; flex-shrink:0; border-radius:5px; object-fit:cover;
+              background:rgba(255,255,255,0.05); display:block; }
+    .alt .lg{ font:800 0.5rem 'Inter',sans-serif; letter-spacing:1px; padding:2px 5px;
+              border-radius:4px; flex-shrink:0; border:1px solid var(--border); color:var(--dim); }
+    .alt .lg.jp{ border-color:var(--accent); color:var(--accent); }
+    #ao-manual{ border-top:1px solid var(--border); padding:9px 12px 11px; flex-shrink:0; }
+    #ao-paste{ display:flex; flex-wrap:wrap; gap:6px; }
+    #ao-url{ flex:1; min-width:0; font:inherit; font-size:0.72rem; padding:7px 9px; border-radius:7px;
+             border:1px solid var(--border); background:var(--field, rgba(0,0,0,0.25)); color:var(--text);
+             outline:none; }
+    #ao-url:focus{ border-color:var(--accent); }
+    #ao-load{ font:700 0.66rem inherit; letter-spacing:0.8px; padding:7px 12px; border-radius:7px;
+              cursor:pointer; border:1px solid var(--accent); background:var(--accent-soft);
+              color:var(--accent); }
+    .ao-note{ width:100%; font-size:0.6rem; color:var(--dim); line-height:1.5; }
+    .ao-note.bad{ color:var(--err, #ff6b6b); }
+    .ao-lang{ display:inline-flex; gap:3px; margin-left:auto; margin-right:8px; }
+    .ao-lang button{ font:800 0.54rem 'Inter',sans-serif; letter-spacing:0.8px; padding:3px 8px;
+                     border-radius:6px; cursor:pointer; border:1px solid var(--border);
+                     background:none; color:var(--dim); }
+    .ao-lang button.on{ border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+    #alt-again{ margin-bottom:6px; }
+    .alt .ai.np{ display:block; }
+    .alt .an{ font-weight:800; color:var(--text); min-width:58px; flex-shrink:0; }
+    .alt .as{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .alt.on .an{ color:var(--accent); }
+    .alt .am{ margin-left:auto; font-variant-numeric:tabular-nums; font-weight:700; }
+    /* address bar — shows what the frame was pointed at, and lets you steer it */
+    #urlbar{ display:flex; align-items:center; gap:6px; padding:6px 10px; min-width:0; background:var(--bg2); border-bottom:1px solid var(--border); }
+    #urlbar{ position:relative; }
+    #urlbar .ub-lab{ font-size:0.52rem; letter-spacing:1.6px; text-transform:uppercase; color:var(--dim); font-weight:800; flex-shrink:0; }
+    #ub-input{ flex:1; min-width:0; height:26px; background:var(--field); border:1px solid var(--border); border-radius:6px; color:var(--text);
+        padding:0 9px; font-size:0.72rem; font-family:ui-monospace,Menlo,Consolas,monospace; outline:none; text-overflow:ellipsis; }
+    #ub-input:focus{ border-color:var(--accent); }
+    #urlbar button{ height:26px; padding:0 10px; border-radius:6px; border:1px solid var(--border); background:var(--panel2); color:var(--dim);
+        font-size:0.64rem; cursor:pointer; font-family:inherit; white-space:nowrap; flex-shrink:0; }
+    #urlbar button:hover{ color:var(--accent); border-color:var(--accent); }
+    /* database picker */
+    #pick-back{ position:fixed; inset:0; z-index:300; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.72); backdrop-filter:blur(3px); padding:18px; }
+    #pick-back.on{ display:flex; }
+    #pick-modal{ background:var(--panel); border:1px solid var(--border); border-radius:13px; width:min(680px,100%); max-height:88vh; display:flex; flex-direction:column; box-shadow:0 26px 70px rgba(0,0,0,0.6); overflow:hidden; }
+    .pk-h{ padding:13px 17px; border-bottom:1px solid var(--border); font-size:0.7rem; letter-spacing:2.2px; text-transform:uppercase; color:var(--accent); font-weight:700; display:flex; align-items:baseline; gap:9px; }
+    .pk-h .pk-sub{ font-size:0.6rem; letter-spacing:0.5px; color:var(--dim); font-weight:500; text-transform:none; margin-left:auto; }
+    .pk-bar{ display:flex; gap:7px; padding:11px 15px; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+    .pk-bar select, .pk-bar input{ height:30px; background:var(--field); border:1px solid var(--border); border-radius:7px; color:var(--text);
+        padding:0 9px; font-size:0.8rem; font-family:inherit; outline:none; }
+    .pk-bar select{ flex:1; min-width:130px; } .pk-bar input{ flex:1.4; min-width:150px; }
+    .pk-bar select:focus, .pk-bar input:focus{ border-color:var(--accent); }
+    #pk-list{ flex:1; overflow-y:auto; padding:8px; overscroll-behavior:contain; }
+    .pk-row{ display:flex; align-items:center; gap:10px; padding:8px 11px; border:1px solid var(--border); border-radius:8px; background:var(--panel2); margin-bottom:6px; cursor:pointer; }
+    .pk-row:hover{ border-color:var(--accent); }
+    .pk-row .nm{ flex:1; font-size:0.84rem; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .pk-row .mt{ font-size:0.64rem; color:var(--dim); white-space:nowrap; }
+    .pk-row .pv{ font-size:0.76rem; font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .pk-foot{ padding:11px 15px; border-top:1px solid var(--border); display:flex; align-items:center; gap:10px; }
+    .pk-note{ flex:1; font-size:0.68rem; color:var(--dim); }
+    /* top bar — compact */
+    #topbar{ display:flex; align-items:center; gap:9px; padding:0 12px; background:var(--panel); border-bottom:1px solid var(--border); }
+    .sun{ width:20px; height:20px; border-radius:50%; background:radial-gradient(circle at 38% 34%, #fff, var(--accent) 56%, rgba(20,20,25,0.9));
+        box-shadow:0 0 14px 2px var(--accent-strong); flex-shrink:0; background-size:cover; background-position:center; }
+    /* A long name, so it keeps to one line and gives way before the controls do. */
+    #title{ font-size:0.6rem; letter-spacing:1.4px; text-transform:uppercase; font-weight:800;
+            color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+            min-width:0; }
+    #title b{ color:var(--accent); letter-spacing:2.2px; }
+    #title span{ color:var(--border); font-weight:400; margin:0 3px; }
+    #title b{ color:var(--accent); }
+    .sp{ flex:1; }
+    .tbtn{ display:flex; align-items:center; gap:5px; height:28px; padding:0 10px; border-radius:7px; background:var(--panel2); border:1px solid var(--border);
+        color:var(--dim); font-size:0.66rem; letter-spacing:0.8px; text-transform:uppercase; cursor:pointer; font-family:inherit; white-space:nowrap; }
+    .tbtn:hover{ color:var(--accent); border-color:var(--accent); }
+    .tbtn.on{ color:var(--accent); border-color:var(--accent); background:var(--accent-soft); }
+    .lnk{ font-size:0.66rem; letter-spacing:1.2px; text-transform:uppercase; color:var(--dim); text-decoration:none; padding:6px 10px; border:1px solid var(--border); border-radius:7px; white-space:nowrap; }
+    .lnk:hover{ color:var(--accent); border-color:var(--accent); }
+    /* lookup bar — fields + source choice + search, all inline */
+    /* This page asks for the whole screen, cut-out included, so it is this bar's job to put the
+       inset back — otherwise the first control on it sits under the camera. */
+    #lookup{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; min-width:0;
+        padding:calc(7px + env(safe-area-inset-top)) calc(10px + env(safe-area-inset-right))
+                7px calc(10px + env(safe-area-inset-left));
+        background:var(--panel); border-bottom:1px solid var(--border); }
+    #f-q{ flex:1 1 200px; min-width:120px; height:32px; background:var(--field); border:1px solid var(--border); border-radius:7px;
+        color:var(--text); padding:0 10px; font-size:0.86rem; font-family:inherit; outline:none; }
+    #f-q:focus{ border-color:var(--accent); }
+    .fld label{ font-size:0.52rem; letter-spacing:1.4px; text-transform:uppercase; color:var(--dim); font-weight:700; }
+    .fld input{ width:100%; height:32px; background:var(--field); border:1px solid var(--border); border-radius:7px; color:var(--text);
+        padding:0 9px; font-size:0.84rem; font-family:inherit; outline:none; }
+    .fld input:focus{ border-color:var(--accent); }
+    .seg{ display:flex; border:1px solid var(--border); border-radius:7px; overflow:hidden; height:32px; flex-shrink:0; }
+    .seg button{ padding:0 12px; background:var(--panel2); border:none; border-right:1px solid var(--border); color:var(--dim);
+        font-size:0.64rem; letter-spacing:1px; text-transform:uppercase; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; }
+    .seg button:last-child{ border-right:none; }
+    .seg button:hover{ color:var(--accent); }
+    .seg button.on{ color:var(--accent); background:var(--accent-soft); }
+    .btn{ height:32px; padding:0 16px; border-radius:7px; border:1px solid var(--accent); background:var(--accent-soft); color:var(--accent);
+        font-size:0.68rem; letter-spacing:1.2px; text-transform:uppercase; font-weight:700; cursor:pointer; font-family:inherit; white-space:nowrap; flex-shrink:0; }
+    .btn:hover{ background:var(--accent-strong); }
+    .btn.ghost{ border-color:var(--border); background:none; color:var(--dim); }
+    #from-db{ flex:0 0 auto; padding:0 13px; }
+    .btn.ghost:hover{ color:var(--accent); border-color:var(--accent); }
+    /* body: embed fills everything, prices ride alongside */
+    #body{ display:flex; min-height:0; }
+    #frame-col{ flex:1; min-width:0; display:flex; flex-direction:column; }
+    #status{ display:flex; align-items:center; gap:8px; padding:5px 11px; font-size:0.66rem; color:var(--dim);
+        background:var(--panel); border-bottom:1px solid var(--border); line-height:1.5; }
+    #status .dot{ width:7px; height:7px; border-radius:50%; background:var(--dim); flex-shrink:0; }
+    #status.bad .dot{ background:var(--err); } #status.warn .dot{ background:var(--warn); } #status.good .dot{ background:var(--ok); }
+    #status .msg{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    #status .msg b{ color:var(--text); }
+    #status code{ font-family:ui-monospace,Menlo,Consolas,monospace; color:var(--accent); font-size:0.62rem; }
+    #status button{ background:none; border:1px solid var(--border); border-radius:6px; color:var(--dim); cursor:pointer;
+        padding:3px 9px; font-size:0.62rem; font-family:inherit; white-space:nowrap; }
+    #status button:hover{ color:var(--accent); border-color:var(--accent); }
+    #frame-wrap{ flex:1; min-height:0; position:relative; background:#fff; }
+    #site-frame{ width:100%; height:100%; border:none; display:block; }
+    /* ── the sheet ──────────────────────────────────────────────────────────
+       A row per card with the columns a stock sheet wants. Sale is left empty on purpose: it is
+       the one figure nothing here can know. */
+    /* The whole of the left column. It is the only thing in there — the frame it replaced is
+       gone for good, so there is no arrangement where the two share the space. */
+    #ledger{ display:flex; flex-direction:column; min-height:0; flex:1; overflow:hidden;
+             border:1px solid var(--border); border-radius:12px; background:var(--panel);
+             margin:8px; }
+    /* The frame is gone, but the panel that lives inside its wrapper is not: in eBay mode that
+       wrapper holds the two Open buttons, the paste boxes and the grab button. Hiding the whole
+       wrapper took the entire eBay flow off screen with the iframe — which is why nothing could
+       be populated. The iframe is what is hidden; the wrapper comes back when there is something
+       in it. */
+    #frame-wrap{ display:none; }
+    #site-frame{ display:none !important; }
+    /* The left column is the sheet and nothing else, in every mode. */
+    .lg-h{ display:flex; align-items:center; gap:8px; padding:8px 11px; flex-shrink:0;
+           border-bottom:1px solid var(--border); background:var(--panel2); }
+    .lg-h .lg-t{ font:800 0.6rem 'Inter',sans-serif; letter-spacing:1.7px; text-transform:uppercase; }
+    /* The count in a box of its own, to the left of the name — it is a fact about the sheet
+       rather than part of what it is called. */
+    .lg-h .lg-n{ font:700 0.62rem ui-monospace,Menlo,Consolas,monospace; color:var(--accent);
+                 min-width:26px; text-align:center; padding:3px 6px; border-radius:6px;
+                 border:1px solid var(--accent); background:var(--accent-soft); flex-shrink:0; }
+    .lg-h .lg-name{ font:800 0.68rem 'Inter',sans-serif; letter-spacing:0.4px; color:var(--text);
+                    background:none; border:1px solid transparent; border-radius:6px;
+                    padding:3px 6px; min-width:80px; max-width:230px; outline:none; }
+    .lg-h .lg-name:hover{ border-color:var(--border); }
+    .lg-h .lg-name:focus{ border-color:var(--accent); background:var(--field, rgba(0,0,0,0.25)); }
+    /* Greyed, because it is there to be read out, not read. */
+    .lg-h .lg-id{ font:0.55rem ui-monospace,Menlo,Consolas,monospace; color:var(--dim);
+                  opacity:0.65; flex-shrink:0; }
+    .lg-h #lg-live.on{ border-color:var(--ok, #56d364); color:var(--ok, #56d364);
+                       background:rgba(86,211,100,0.12); }
+    .lg-h #lg-ro.on{ border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+    .lg-h #lg-ro:disabled{ opacity:0.4; cursor:not-allowed; }
+    .lg-h .sp{ flex:1; }
+    .lg-h button{ font:700 0.6rem inherit; letter-spacing:0.9px; padding:5px 9px; border-radius:7px;
+                  cursor:pointer; border:1px solid var(--border); background:none; color:var(--dim); }
+    .lg-h button:hover{ border-color:var(--accent); color:var(--accent); }
+    .lg-h button.bad{ border-color:var(--err, #ff6b6b); color:var(--err, #ff6b6b); }
+    .lg-h #lg-tab.on{ border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+    .lg-h #lg-tab b{ font-variant-numeric:tabular-nums; }
+    .lg-h button.bad:hover{ background:rgba(255,107,107,0.14); color:var(--err, #ff6b6b); }
+    /* Our own question rather than the browser's. The browser's names itself after the site and
+       cannot say anything in our own words. */
+    #lg-ask{ position:absolute; inset:0; z-index:12; display:none; align-items:center;
+             justify-content:center; padding:20px; background:rgba(6,6,10,0.66);
+             backdrop-filter:blur(3px); }
+    #lg-ask.on{ display:flex; }
+    #lg-ask .card{ width:min(390px,100%); border-radius:13px; overflow:hidden;
+                   border:1px solid var(--border); background:var(--panel);
+                   box-shadow:0 22px 60px rgba(0,0,0,0.6); }
+    #lg-ask .h{ padding:12px 15px; border-bottom:1px solid var(--border);
+                font:800 0.64rem 'Inter',sans-serif; letter-spacing:1.6px; text-transform:uppercase; }
+    #lg-ask .h.bad{ color:var(--err, #ff6b6b); }
+    #lg-ask .b{ padding:13px 15px; font-size:0.75rem; line-height:1.7; color:var(--dim); }
+    #lg-ask .card{ width:min(390px,100%); }
+    #lg-ask .card:has(.dc){ width:min(520px,100%); }
+    .dc-h{ margin-bottom:10px; color:var(--text); }
+    .dc-h b{ color:var(--accent); }
+    .dc-row{ display:grid; grid-template-columns:130px 1fr 96px; align-items:center; gap:8px;
+             margin-bottom:6px; }
+    .dc-row.me .dc-n{ color:var(--accent); }
+    .dc-n{ font-size:0.66rem; line-height:1.25; }
+    .dc-n i{ display:block; font-style:normal; font-size:0.55rem; opacity:0.6; }
+    .dc-t{ height:12px; border-radius:6px; background:rgba(255,255,255,0.06); overflow:hidden; }
+    .dc-t i{ display:block; height:100%; border-radius:6px; background:var(--dim); }
+    .dc-row.me .dc-t i{ background:var(--accent); }
+    .dc-v{ text-align:right; font:700 0.72rem ui-monospace,Menlo,Consolas,monospace;
+           font-variant-numeric:tabular-nums; color:var(--text); }
+    .dc-v b{ display:block; font-size:0.56rem; font-weight:700; }
+    .dc-v b.up{ color:var(--ok, #7bd88f); }
+    .dc-v b.dn{ color:var(--err, #ff6b6b); }
+    .dc-s{ margin-top:10px; font-size:0.7rem; line-height:1.65; }
+    .dc-s b{ color:var(--text); }
+    .dc-s.dim{ opacity:0.75; font-size:0.66rem; }
+    #lg-ask .r{ display:flex; gap:8px; padding:0 15px 14px; }
+    #lg-ask .r button{ flex:1; font:700 0.7rem inherit; letter-spacing:1px; padding:9px 12px;
+                       border-radius:9px; cursor:pointer; border:1px solid var(--border);
+                       background:none; color:var(--dim); }
+    #lg-ask .r button.go{ border-color:var(--accent); background:var(--accent-soft);
+                          color:var(--accent); }
+    #lg-ask .r button.go.bad{ border-color:var(--err, #ff6b6b);
+                              background:rgba(255,107,107,0.14); color:var(--err, #ff6b6b); }
+    /* Four more columns, hidden rather than absent: the cells are always in the row, so the two
+       layouts are one template swap instead of two ways of building a row. */
+    .lg-cols .adv, .lg-row .adv{ display:none; }
+    body.lg-adv .lg-cols .adv, body.lg-adv .lg-row .adv{ display:block; }
+    body.lg-adv .lg-cols, body.lg-adv .lg-row{
+        grid-template-columns:26px minmax(120px,1fr) 96px 78px 52px 74px 74px 74px 74px 64px 74px 28px;
+        gap:10px; }
+    /* Under their own headings rather than beside them: these four are short values in narrow
+       columns, and left-aligning a 3-character code under a 6-character word reads as a mistake. */
+    .lg-cols .adv, .lg-row .adv{ text-align:center; }
+    .lg-row .c-code{ font:700 0.62rem ui-monospace,Menlo,Consolas,monospace; color:var(--dim);
+                     overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .lg-row .c-lang{ font:700 0.58rem 'Inter',sans-serif; letter-spacing:0.8px; color:var(--dim); }
+    .lg-row .c-cat{ font:700 0.55rem 'Inter',sans-serif; letter-spacing:1px; }
+    .lg-row .c-cat.sealed{ color:var(--accent); }
+    .lg-row .c-cat.single{ color:var(--dim); }
+    .lg-row .c-tr{ font:700 0.62rem ui-monospace,Menlo,Consolas,monospace; }
+    .lg-row .c-tr.up{ color:var(--ok, #7bd88f); }
+    .lg-row .c-tr.dn{ color:var(--err, #ff6b6b); }
+    .lg-row .c-tr.flat, .lg-row .c-tr.none{ color:var(--dim); }
+    .lg-h #lg-tools.on{ border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+    /* Green today, red once a day has passed. A dot rather than a sentence, because it is a
+       thing you glance at rather than read \u2014 the sentence is on hover. */
+    #lg-fresh{ font-size:0.7rem; line-height:1; cursor:help; color:var(--dim); }
+    #lg-fresh.ok{ color:var(--ok, #7bd88f); }
+    #lg-fresh.old{ color:var(--err, #ff6b6b); }
+    .lg-h #lg-adv.on{ border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+    .lg-cols, .lg-row{ display:grid; grid-template-columns:26px 1fr 118px 78px 78px 78px 76px 28px;
+                       align-items:center; gap:8px; padding:7px 11px; }
+    /* Where the figures came from. A price with no provenance is a rumour — and once eBay and
+       TCGplayer are both in the sheet, the two are not comparable without knowing which. */
+    .lg-row .c-sr a{ font:700 0.6rem 'Inter',sans-serif; letter-spacing:0.5px; color:var(--dim);
+                     text-decoration:none; border-bottom:1px solid transparent; }
+    .lg-row .c-sr a:hover{ color:var(--accent); border-bottom-color:var(--accent); }
+    .lg-row .c-sr .none{ font-size:0.6rem; color:var(--dim); opacity:0.6; }
+    .lg-cols .c-k, .lg-row .c-k{ display:flex; align-items:center; justify-content:center; }
+    .lg-row input[type=checkbox], .lg-cols input[type=checkbox]{ accent-color:var(--accent);
+        cursor:pointer; width:14px; height:14px; }
+    .lg-row.pick{ background:var(--accent-soft); }
+    /* The reckoning. Market against buy, and the difference between them, which is the number
+       the whole sheet exists to produce. */
+    #lg-sum{ display:flex; align-items:center; gap:14px; flex-wrap:wrap; flex-shrink:0;
+             padding:9px 12px; border-top:1px solid var(--border); background:var(--panel2); }
+    /* The figures read as a total, and a total belongs at the end of what it totals. */
+    #lg-sum .s-n{ margin-right:auto; }
+    #lg-sum .s-n{ font-size:0.66rem; color:var(--dim); }
+    #lg-sum .s-n b{ color:var(--accent); }
+    #lg-sum .s-b{ display:flex; flex-direction:column; gap:1px; }
+    #lg-sum .s-b i{ font:800 0.48rem 'Inter',sans-serif; letter-spacing:1.3px;
+                    text-transform:uppercase; color:var(--dim); font-style:normal; }
+    #lg-sum .s-b b{ font:700 0.86rem ui-monospace,Menlo,Consolas,monospace;
+                    font-variant-numeric:tabular-nums; }
+    #lg-sum .s-b.pf b{ color:var(--ok, #7bd88f); }
+    #lg-sum .s-b.pf.neg b{ color:var(--err, #ff6b6b); }
+    /* Where it goes when it leaves here. */
+    #lg-out, .lg-menu{ position:absolute; right:10px; top:44px; z-index:9; display:none;
+             flex-direction:column; min-width:250px; padding:5px; border-radius:11px;
+             background:var(--panel2); border:1px solid var(--border);
+             box-shadow:0 14px 38px rgba(0,0,0,0.5);
+             max-height:min(72vh, 520px); overflow-y:auto; overscroll-behavior:contain; }
+    #lg-out.on, .lg-menu.on{ display:flex; }
+    #lg-out button, .lg-menu button{ font:inherit; font-size:0.72rem; text-align:left; cursor:pointer;
+                    padding:8px 10px; border-radius:8px; border:none; background:none;
+                    color:var(--text); }
+    #lg-out button:hover, .lg-menu button:hover{ background:var(--accent-soft); color:var(--accent); }
+    #lg-out button small, .lg-menu button small{ display:block; font-size:0.6rem; color:var(--dim); margin-top:1px; }
+    #lg-out .sep{ height:1px; margin:4px 6px; background:var(--border); }
+    .lg-menu .sep{ height:1px; margin:4px 6px; background:var(--border); }
+    /* A choice that has choices inside it opens where it stands. It used to open a second menu
+       over the first, and that menu was shut again by the very click that asked for it, on its
+       way up to the handler that closes menus — which is why none of these appeared to do
+       anything at all. */
+    .lg-menu button.more{ padding-right:26px; position:relative; }
+    .lg-menu button.more::after{
+        content:'\25B8'; position:absolute; right:10px; top:9px; font-size:0.7rem;
+        color:var(--dim); transition:transform 0.15s;
+    }
+    .lg-menu button.more.open::after{ transform:rotate(90deg); color:var(--accent); }
+    .lg-menu button.more.open{ color:var(--accent); }
+    .lg-menu .lg-sub{ display:none; flex-direction:column; }
+    .lg-menu .lg-sub.on{ display:flex; }
+    /* Indented, and on a rule, so what belongs to what is legible without reading it. */
+    .lg-menu button.sub{
+        padding-left:20px; margin-left:11px;
+        border-left:1px solid var(--border); border-radius:0 8px 8px 0;
+    }
+    .lg-menu .lg-sub .sep{ margin-left:17px; }
+    .lg-cols{ font:800 0.52rem 'Inter',sans-serif; letter-spacing:1.3px; text-transform:uppercase;
+              color:var(--dim); border-bottom:1px solid var(--border); flex-shrink:0; }
+    .lg-cols .c-n, .lg-row .c-n{ text-align:right; }
+    #lg-rows{ overflow-y:auto; min-height:0; flex:1; }
+    #lg-lock{ position:absolute; inset:0; z-index:4; display:none; flex-direction:column;
+              align-items:center; justify-content:center; gap:11px;
+              background:rgba(8,8,12,0.66); }
+    body.lg-syncing #lg-lock{ display:flex; }
+    @keyframes lg-spin{ to{ transform:rotate(360deg); } }
+    #lg-lock .ring{ width:42px; height:42px; border-radius:50%; border:3px solid var(--border);
+                    border-top-color:var(--accent); animation:lg-spin 0.75s linear infinite; }
+    #lg-lock .cnt{ font:700 0.74rem ui-monospace,Menlo,Consolas,monospace; color:var(--accent);
+                   font-variant-numeric:tabular-nums; }
+    #lg-lock .who{ font-size:0.64rem; color:var(--dim); max-width:70%; text-align:center;
+                   overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    /* The one being read shows through the dark, with its own background so the scrim behind it
+       does not tint it. Everything else stays under. */
+    .lg-row.syncing{ position:relative; z-index:5; background:var(--panel);
+                     box-shadow:0 0 0 1px var(--accent), 0 0 20px 4px rgba(255,140,40,0.42); }
+    .lg-row{ cursor:pointer; border-bottom:1px solid var(--border); font-size:0.76rem; }
+    .lg-row:hover{ background:var(--accent-soft); }
+    .lg-row .c-nm{ display:flex; align-items:center; gap:8px; min-width:0; }
+    .lg-row .c-nm img{ width:26px; height:36px; object-fit:cover; border-radius:3px; flex-shrink:0;
+                       background:rgba(255,255,255,0.05); }
+    .lg-row .c-nm span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .lg-row .c-st{ color:var(--dim); font-size:0.68rem; overflow:hidden; text-overflow:ellipsis;
+                   white-space:nowrap; }
+    .lg-row .c-n{ font-variant-numeric:tabular-nums; font-weight:700; }
+    .lg-row .c-n.mk{ color:var(--accent); }
+    .lg-row .c-n.by{ color:var(--ok, #7bd88f); }
+    .lg-row .c-n.em{ color:var(--dim); font-weight:400; }
+    .lg-row .c-x{ text-align:center; color:var(--dim); }
+    .lg-row .c-x:hover{ color:var(--err, #ff6b6b); }
+    /* Opened out: every figure that was pulled, and the two ways of setting one. */
+    .lg-open{ padding:11px 13px 14px; border-bottom:1px solid var(--border);
+              background:var(--bg2, rgba(0,0,0,0.18)); }
+    .lg-cols2{ display:grid; grid-template-columns:172px 1fr 1fr; gap:14px; align-items:start; }
+    @media (max-width:1100px){ .lg-cols2{ grid-template-columns:140px 1fr; } }
+    @media (max-width:760px){ .lg-cols2{ grid-template-columns:1fr; } }
+    /* Big enough to read the art and the number off, which the row's stamp is not. */
+    .lg-card{ text-align:center; }
+    .lg-card img{ width:100%; max-width:150px; border-radius:7px; display:block; margin:0 auto 8px;
+                  background:rgba(255,255,255,0.05); }
+    .lg-card .noimg{ width:100%; max-width:150px; aspect-ratio:5/7; border-radius:7px;
+                     margin:0 auto 8px; display:grid; place-items:center;
+                     background:rgba(255,255,255,0.05); border:1px dashed var(--border);
+                     font-size:0.6rem; color:var(--dim); }
+    .lg-card .cn{ font-weight:800; font-size:0.78rem; line-height:1.35; }
+    .lg-card .cc{ font:700 0.7rem ui-monospace,Menlo,Consolas,monospace; color:var(--accent);
+                  margin-top:2px; }
+    .lg-card .cs{ font-size:0.63rem; color:var(--dim); margin-top:2px; line-height:1.4; }
+    .lg-trend{ margin-top:12px; padding:11px 12px; border-radius:11px;
+               border:1px dashed var(--border); background:rgba(255,255,255,0.02); }
+    .tr-h{ font:800 0.52rem 'Inter',sans-serif; letter-spacing:1.4px; text-transform:uppercase;
+           margin-bottom:8px; }
+    .tr-h span{ display:block; font-weight:600; letter-spacing:0.4px; text-transform:none;
+                font-size:0.56rem; color:var(--dim); margin-top:2px; }
+    .tr-row{ display:grid; grid-template-columns:118px 1fr 108px; align-items:center; gap:8px;
+             margin-bottom:5px; }
+    .tr-n{ font-size:0.62rem; color:var(--dim); }
+    .tr-t{ height:9px; border-radius:5px; background:rgba(255,255,255,0.06); overflow:hidden; }
+    .tr-t i{ display:block; height:100%; border-radius:5px; background:var(--dim); }
+    .tr-t i.sup{ background:var(--accent); }
+    .tr-t i.good{ background:var(--ok, #7bd88f); }
+    .tr-t i.warn{ background:var(--err, #ff6b6b); }
+    .tr-v{ font-size:0.6rem; color:var(--dim); text-align:right;
+           font-variant-numeric:tabular-nums; }
+    .tr-note{ font-size:0.56rem; color:var(--dim); opacity:0.8; line-height:1.55; margin-top:7px; }
+    .sd-figs{ display:grid; grid-template-columns:repeat(auto-fit,minmax(112px,1fr)); gap:7px;
+              margin-bottom:11px; }
+    .sd-f{ padding:7px 9px; border-radius:8px; border:1px solid var(--border);
+           background:rgba(255,255,255,0.03); }
+    .sd-f.warn{ border-color:var(--err, #ff6b6b); }
+    .sd-f i{ display:block; font:800 0.46rem 'Inter',sans-serif; letter-spacing:1.2px;
+             text-transform:uppercase; color:var(--dim); font-style:normal; }
+    .sd-f b{ display:block; font:700 0.92rem ui-monospace,Menlo,Consolas,monospace;
+             font-variant-numeric:tabular-nums; margin-top:2px; }
+    .sd-f.warn b{ color:var(--err, #ff6b6b); }
+    .sd-f u{ display:block; text-decoration:none; font-size:0.55rem; color:var(--dim); margin-top:1px; }
+    /* Every listing as a tick along the range it sits in. A wall at the bottom looks like one. */
+    .sd-strip{ position:relative; height:26px; border-radius:7px; margin-bottom:3px;
+               background:rgba(255,255,255,0.05); overflow:hidden; }
+    .sd-zone{ position:absolute; left:0; top:0; bottom:0; background:rgba(255,107,107,0.16);
+              border-right:1px dashed rgba(255,107,107,0.6); }
+    .sd-strip i{ position:absolute; top:5px; bottom:5px; width:2px; margin-left:-1px;
+                 background:var(--accent); opacity:0.75; border-radius:1px; }
+    .sd-strip s{ position:absolute; top:0; bottom:0; width:2px; margin-left:-1px;
+                 background:var(--text); opacity:0.85; }
+    .sd-ends{ display:flex; justify-content:space-between; gap:8px; font-size:0.53rem;
+              color:var(--dim); margin-bottom:9px; }
+    .sd-ends .mid{ opacity:0.75; }
+    .sd-bunch{ font-size:0.66rem; margin-bottom:8px; }
+    .sd-bunch b{ color:var(--accent); }
+    .sd-say{ font-size:0.7rem; line-height:1.65; padding:8px 10px; border-radius:8px;
+             border-left:3px solid var(--dim); background:rgba(255,255,255,0.03); }
+    .sd-say.warn{ border-left-color:var(--err, #ff6b6b); }
+    .sd-say.good{ border-left-color:var(--ok, #7bd88f); }
+    .lg-pane{ min-width:0; border:1px solid var(--border); border-radius:10px;
+              padding:10px 11px; background:var(--panel); }
+    .lg-pane .lg-sec:first-child{ margin-top:0; }
+    /* The percentage row is long now, so it scrolls rather than pushing the pane down. */
+    .lg-pane .lg-picks{ max-height:none; }
+    .lg-sec.sub{ font-size:0.48rem; opacity:0.8; margin-top:11px; }
+    .lg-picks button.wide{ width:100%; justify-content:space-between; display:flex; }
+    .lg-picks button{ display:flex; flex-direction:column; gap:2px; align-items:flex-start;
+                      min-width:62px; }
+    .lg-picks button b{ font:700 0.74rem ui-monospace,Menlo,Consolas,monospace; color:var(--text); }
+    .lg-picks button.on, .lg-ones button.on{ border-color:var(--accent); color:var(--accent);
+                                             background:var(--accent-soft); }
+    .lg-picks button.on b{ color:var(--accent); }
+    /* The most recent sale, marked where it sits rather than repeated somewhere else. */
+    .lg-ones button.latest{ border-color:var(--accent); color:var(--accent); font-weight:800; }
+    .lg-ones button.latest::after{ content:' \2022'; }
+    .lg-ones{ max-height:96px; }
+    /* The two sides of the market, side by side. */
+    .lg-sides{ display:grid; grid-template-columns:1fr 1fr; gap:9px; align-items:start; }
+    @media (max-width:1250px){ .lg-sides{ grid-template-columns:1fr; } }
+    .lg-side{ min-width:0; }
+    /* Each side in its own box, sized to its contents rather than stretched across whatever room
+       happens to be going. */
+    .lg-box{ border:1px solid var(--border); border-radius:11px; padding:9px 10px 10px;
+             background:rgba(255,255,255,0.02); }
+    .lg-box .lg-sec.sub{ margin-top:0; }
+    /* The headline figure, above the two sides that argue about it. */
+    .lg-fair{ display:block; width:100%; text-align:center; cursor:pointer; margin-bottom:10px;
+              padding:10px 12px; border-radius:12px; font:inherit;
+              border:1px solid var(--accent); background:var(--accent-soft); color:var(--accent); }
+    .lg-fair:hover{ background:var(--accent-strong); }
+    .lg-fair i{ display:block; font:800 0.46rem 'Inter',sans-serif; letter-spacing:1.5px;
+                text-transform:uppercase; font-style:normal; opacity:0.85; }
+    .lg-fair b{ display:block; font:800 1.3rem ui-monospace,Menlo,Consolas,monospace;
+                font-variant-numeric:tabular-nums; margin:2px 0 1px; }
+    .lg-fair u{ display:block; text-decoration:none; font-size:0.54rem; opacity:0.7; }
+    .lg-visit{ display:block; margin-top:8px; padding:6px 8px; border-radius:7px;
+               font:700 0.6rem 'Inter',sans-serif; letter-spacing:0.6px; text-decoration:none;
+               text-align:center; border:1px solid var(--border); color:var(--dim); }
+    .lg-visit:hover{ border-color:var(--accent); color:var(--accent); }
+    .lg-side .lg-picks{ display:grid; grid-template-columns:repeat(3,1fr); gap:4px; }
+    .lg-side .lg-picks button{ min-width:0; padding:5px 6px; }
+    .lg-rows2{ max-height:150px; overflow-y:auto; margin-top:6px;
+               border:1px solid var(--border); border-radius:8px; }
+    .lg-r2{ display:grid; grid-template-columns:60px 12px 1fr 1fr; align-items:center; gap:5px;
+            width:100%; text-align:left; cursor:pointer; padding:4px 7px; font:inherit;
+            border:none; border-bottom:1px solid var(--border); background:none; color:inherit; }
+    .lg-r2:last-child{ border-bottom:none; }
+    .lg-r2:hover{ background:var(--accent-soft); }
+    .lg-r2.on{ background:var(--accent-soft); box-shadow:inset 2px 0 0 var(--accent); }
+    .lg-r2 .a{ font:700 0.68rem ui-monospace,Menlo,Consolas,monospace; color:var(--text);
+               font-variant-numeric:tabular-nums; }
+    .lg-r2 .st{ color:var(--accent); font-size:0.6rem; }
+    .lg-r2 .c, .lg-r2 .s{ font-size:0.58rem; color:var(--dim); overflow:hidden;
+                          text-overflow:ellipsis; white-space:nowrap; }
+    .lg-r2.latest .a{ color:var(--accent); }
+    .lg-r2.latest::after{ content:'latest'; grid-column:1/-1; font-size:0.5rem;
+                          letter-spacing:1px; text-transform:uppercase; color:var(--accent); }
+    /* What pressing Submit will write, stated before it is written. */
+    .lg-chosen{ display:flex; align-items:baseline; gap:7px; flex-wrap:wrap; margin:10px 0 7px;
+                padding:8px 10px; border-radius:9px; background:rgba(255,255,255,0.04);
+                border:1px solid var(--border); }
+    .lg-chosen .k{ font:800 0.48rem 'Inter',sans-serif; letter-spacing:1.3px;
+                   text-transform:uppercase; color:var(--dim); }
+    .lg-chosen b{ font:800 1.15rem ui-monospace,Menlo,Consolas,monospace; color:var(--accent);
+                  font-variant-numeric:tabular-nums; }
+    .lg-chosen i{ font-style:normal; font-size:0.6rem; color:var(--dim); margin-left:auto; }
+    .lg-submit{ width:100%; font:700 0.68rem inherit; letter-spacing:1px; padding:8px 10px;
+                border-radius:8px; cursor:pointer; border:1px solid var(--accent);
+                background:var(--accent-soft); color:var(--accent); }
+    .lg-submit:disabled{ opacity:0.35; cursor:default; border-color:var(--border);
+                         color:var(--dim); background:none; }
+    .lg-refresh{ width:100%; margin-top:9px; font:700 0.6rem inherit; letter-spacing:0.8px;
+                 padding:6px 8px; border-radius:7px; cursor:pointer;
+                 border:1px solid var(--border); background:none; color:var(--dim); }
+    .lg-refresh:hover{ border-color:var(--accent); color:var(--accent); }
+    .lg-slide{ display:flex; align-items:center; gap:9px; margin:4px 0 9px; }
+    .lg-slide input{ flex:1; accent-color:var(--accent); cursor:pointer; }
+    .lg-slide b{ width:42px; text-align:right; font:700 0.8rem ui-monospace,Menlo,Consolas,monospace;
+                 color:var(--accent); font-variant-numeric:tabular-nums; }
+    /* The change is lit where it lands, so it is seen without the row being redrawn. */
+    @keyframes lgflash{ 0%{ background:var(--accent); color:#241205; }
+                        100%{ background:transparent; } }
+    .lg-row .c-n.flash{ animation:lgflash 900ms ease-out; border-radius:4px; }
+    .lg-sec{ font:800 0.52rem 'Inter',sans-serif; letter-spacing:1.4px; text-transform:uppercase;
+             color:var(--dim); margin:0 0 6px; }
+    .lg-sec + .lg-sec{ margin-top:12px; }
+    .lg-picks{ display:flex; flex-wrap:wrap; gap:5px; margin-bottom:4px; }
+    .lg-picks button{ font:700 0.64rem inherit; padding:5px 9px; border-radius:7px; cursor:pointer;
+                      border:1px solid var(--border); background:var(--panel2); color:var(--text); }
+    .lg-picks button:hover{ border-color:var(--accent); color:var(--accent); }
+    .lg-picks button.on{ border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+    .lg-picks button i{ font-style:normal; color:var(--dim); font-weight:400; margin-left:5px; }
+    .lg-ones{ display:flex; flex-wrap:wrap; gap:4px; max-height:104px; overflow-y:auto; }
+    .lg-ones button{ font:700 0.62rem ui-monospace,Menlo,Consolas,monospace; padding:4px 7px;
+                     border-radius:6px; cursor:pointer; border:1px solid var(--border);
+                     background:none; color:var(--dim); }
+    .lg-ones button:hover{ border-color:var(--accent); color:var(--accent); }
+    .lg-own{ display:flex; align-items:center; gap:6px; margin-top:7px; }
+    .lg-own input{ width:96px; font:700 0.7rem ui-monospace,Menlo,Consolas,monospace;
+                   padding:6px 8px; border-radius:7px; border:1px solid var(--border);
+                   background:var(--field, rgba(0,0,0,0.25)); color:var(--text); outline:none; }
+    .lg-own input:focus{ border-color:var(--accent); }
+    .lg-own button{ font:700 0.62rem inherit; letter-spacing:0.9px; padding:6px 10px;
+                    border-radius:7px; cursor:pointer; border:1px solid var(--accent);
+                    background:var(--accent-soft); color:var(--accent); }
+    .lg-empty{ padding:26px 16px; text-align:center; font-size:0.74rem; color:var(--dim);
+               line-height:1.7; }
+    #frame-msg{ position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center;
+        text-align:center; padding:26px; background:var(--bg1); color:var(--dim); gap:9px; }
+    #frame-msg.on{ display:flex; }
+    #frame-msg .big{ font-size:2rem; opacity:0.55; }
+    #frame-msg .t{ font-size:0.92rem; color:var(--text); font-weight:700; }
+    #frame-msg .s{ font-size:0.75rem; line-height:1.7; max-width:440px; }
+    #frame-msg code{ font-family:ui-monospace,Menlo,Consolas,monospace; background:var(--panel2); border:1px solid var(--border);
+        border-radius:5px; padding:1px 6px; color:var(--accent); font-size:0.72rem; }
+    /* prices side panel */
+    /* position:relative because the printings list is absolute inside it now — without an
+       anchor it would size itself against the page instead of this column. */
+    #dbc-back{ position:fixed; inset:0; z-index:70; display:none; align-items:center;
+               justify-content:center; padding:20px; background:rgba(6,6,10,0.66); }
+    #dbc-back.on{ display:flex; }
+    #dbc-card{ width:min(560px,100%); max-height:min(660px,88vh); display:flex; flex-direction:column;
+               border-radius:14px; overflow:hidden; border:1px solid var(--border);
+               background:var(--panel); box-shadow:0 24px 64px rgba(0,0,0,0.6); }
+    .dbc-find{ padding:10px 14px 0; flex-shrink:0; }
+    .dbc-find input{ width:100%; font:inherit; font-size:0.78rem; padding:8px 11px; border-radius:9px;
+                     border:1px solid var(--border); background:var(--field, rgba(0,0,0,0.25));
+                     color:var(--text); outline:none; }
+    .dbc-find input:focus{ border-color:var(--accent); }
+    .dbc-row{ display:grid; grid-template-columns:44px 1fr; gap:11px; align-items:center;
+              width:100%; text-align:left; padding:8px 10px; margin-bottom:6px; border-radius:10px;
+              cursor:pointer; font:inherit; border:1px solid var(--border);
+              background:var(--panel2); color:var(--text); }
+    .dbc-row:hover{ border-color:var(--accent); }
+    .dbc-row img, .dbc-row .np{ width:44px; height:60px; border-radius:5px; object-fit:contain;
+                                background:rgba(255,255,255,0.04); }
+    .dbc-row .nm{ display:block; font:800 0.76rem 'Inter',sans-serif; }
+    .dbc-row .st{ display:block; font-size:0.6rem; color:var(--dim); margin-top:2px; }
+    /* What it would take to look this card up again, said plainly. */
+    .dbc-row .rf{ display:block; font:0.56rem ui-monospace,Menlo,Consolas,monospace;
+                  color:var(--dim); opacity:0.8; margin-top:4px; overflow-wrap:anywhere; }
+    .dbc-row .rf b{ color:var(--accent); font-weight:700; }
+    #db-back{ position:fixed; inset:0; z-index:70; display:none; align-items:center;
+              justify-content:center; padding:20px; background:rgba(6,6,10,0.66); }
+    #db-back.on{ display:flex; }
+    #db-card{ width:min(520px,100%); max-height:min(620px,88vh); display:flex; flex-direction:column;
+              border-radius:14px; overflow:hidden; border:1px solid var(--border);
+              background:var(--panel); box-shadow:0 24px 64px rgba(0,0,0,0.6); }
+    .db-row{ display:grid; grid-template-columns:1fr auto; gap:4px 10px; width:100%; text-align:left;
+             padding:10px 12px; margin-bottom:6px; border-radius:10px; cursor:pointer; font:inherit;
+             border:1px solid var(--border); background:var(--panel2); color:var(--text); }
+    .db-row:hover{ border-color:var(--accent); }
+    .db-row .nm{ font:800 0.78rem 'Inter',sans-serif; }
+    .db-row .n{ font:700 0.66rem ui-monospace,Menlo,Consolas,monospace; color:var(--accent);
+                align-self:center; }
+    .db-row .sub{ grid-column:1/-1; font-size:0.6rem; color:var(--dim); line-height:1.5; }
+    .db-row .lock{ color:var(--accent); }
+    #fb-back{ position:fixed; inset:0; z-index:70; display:none; align-items:center;
+              justify-content:center; padding:20px; background:rgba(6,6,10,0.66); }
+    #fb-back.on{ display:flex; }
+    #fb-card{ width:min(420px,100%); max-height:min(560px,88vh); display:flex; flex-direction:column;
+              border-radius:14px; overflow:hidden; border:1px solid var(--border);
+              background:var(--panel); box-shadow:0 24px 64px rgba(0,0,0,0.6); }
+    .fb-h{ display:flex; align-items:center; padding:12px 15px; flex-shrink:0;
+           border-bottom:1px solid var(--border); color:var(--accent);
+           font:800 0.62rem 'Inter',sans-serif; letter-spacing:1.6px; text-transform:uppercase; }
+    .fb-h button{ margin-left:auto; border:none; background:none; color:var(--dim); cursor:pointer;
+                  font-size:0.8rem; }
+    .fb-h button:hover{ color:var(--accent); }
+    .fb-body{ flex:1; min-height:130px; overflow-y:auto; padding:12px 14px; }
+    .fb-foot{ display:flex; gap:7px; padding:11px 14px; flex-shrink:0;
+              border-top:1px solid var(--border); }
+    .fb-foot textarea{ flex:1; min-width:0; resize:none; font:inherit; font-size:0.78rem;
+                       padding:8px 10px; border-radius:9px; border:1px solid var(--border);
+                       background:var(--field, rgba(0,0,0,0.25)); color:var(--text); outline:none; }
+    .fb-foot textarea:focus{ border-color:var(--accent); }
+    .fb-foot button{ font:700 0.68rem inherit; letter-spacing:0.9px; padding:0 15px;
+                     border-radius:9px; cursor:pointer; border:1px solid var(--accent);
+                     background:var(--accent-soft); color:var(--accent); }
+    .fb-msg{ max-width:84%; padding:8px 11px; border-radius:14px; margin-bottom:3px;
+             font-size:0.78rem; line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .fb-msg.me{ margin-left:auto; background:var(--accent); color:#241205;
+                border-bottom-right-radius:5px; }
+    .fb-msg.them{ background:rgba(255,255,255,0.07); border-bottom-left-radius:5px; }
+    .fb-at{ font-size:0.55rem; color:var(--dim); margin-bottom:9px; }
+    .fb-at.me{ text-align:right; }
+    .fb-note{ text-align:center; font-size:0.68rem; color:var(--dim); line-height:1.7;
+              padding:16px 8px; }
+    /* It takes the column and nothing else is in it, so the log can own the free height and
+       scroll on its own rather than the whole column scrolling under a fixed composer. */
+    #scan{ order:2; display:none; flex-direction:column; flex:1 1 auto; min-height:0; }
+    body.scan #scan{ display:flex; }
+    body.scan #ask, body.scan #co-wrap, body.scan #ebay-panel,
+    body.scan #grab-page, body.scan #alt-again{ display:none !important; }
+    /* The two choices are gone once one of them is being done; the bar above them stays, because
+       that is the way back out. */
+    body.scan #wiz .wz-main{ display:none; }
+    body.scan #wiz{ flex:0 0 auto; }
+    /* Faded at the top edge, so what has scrolled past thins out rather than being sliced off
+       against the bar above it. */
+    .sc-log{ flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain;
+             padding:14px 12px 8px; display:flex; flex-direction:column; gap:2px;
+             -webkit-mask-image:linear-gradient(to bottom, transparent 0, #000 26px);
+             mask-image:linear-gradient(to bottom, transparent 0, #000 26px); }
+    .sc-msg{ display:flex; gap:8px; align-items:flex-end; margin-top:10px; }
+    .sc-msg.me{ flex-direction:row-reverse; }
+    .sc-msg .ava{ width:24px; height:24px; border-radius:50%; flex-shrink:0; margin-bottom:2px;
+                  background:var(--accent-soft) center/cover no-repeat; border:1px solid var(--border); }
+    .sc-bub{ position:relative; border-radius:17px; padding:8px 12px; font-size:0.78rem;
+             line-height:1.5; letter-spacing:-0.1px; max-width:min(560px, 84%);
+             background:rgba(255,255,255,0.07); border-bottom-left-radius:5px;
+             animation:sc-pop 0.18s ease-out; overflow-wrap:anywhere; }
+    .sc-msg.me .sc-bub{ background:var(--accent); color:#241205;
+                        border-bottom-left-radius:17px; border-bottom-right-radius:5px; }
+    @keyframes sc-pop{ from{ opacity:0; transform:translateY(6px) scale(0.98); } }
+    .sc-bub b{ font-weight:700; }
+    .sc-bub .small{ display:block; font-size:0.9em; opacity:0.72; line-height:1.5; margin-top:4px; }
+    /* Panels carry data, so they read on the panel colour rather than the bubble colour. */
+    .sc-bub.wide{ max-width:100%; background:var(--panel); border:1px solid var(--border); }
+    .sc-opts{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+    .sc-opts button{ font:550 0.72rem 'Inter',sans-serif; padding:6px 12px; border-radius:999px;
+                     cursor:pointer; border:1px solid var(--border); background:var(--panel2);
+                     color:var(--text); }
+    .sc-opts button:hover{ border-color:var(--accent); }
+    .sc-opts button.pri{ background:var(--accent); border-color:transparent; color:#241205;
+                         font-weight:650; }
+
+    /* The photo, with the boxes drawn over it. */
+    .sc-stage{ margin-top:9px; border:1px solid var(--border); border-radius:12px; overflow:hidden;
+               background:#000; }
+    .sc-stage canvas{ width:100%; height:auto; display:block; cursor:crosshair; touch-action:none; }
+    .sc-thumbs{ display:grid; grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:7px;
+                margin-top:9px; }
+    .sc-th{ position:relative; border:1px solid var(--border); border-radius:9px; overflow:hidden;
+            background:#000; }
+    .sc-th canvas{ width:100%; display:block; }
+    .sc-th .n{ position:absolute; left:5px; top:5px; background:rgba(0,0,0,0.62); color:#fff;
+               font-size:0.55rem; padding:2px 6px; border-radius:999px; }
+    /* Only appears once you are on the card it would remove, so nothing invites a stray press. */
+    .sc-th .x{ position:absolute; right:4px; top:4px; width:21px; height:21px; padding:0;
+               border-radius:50%; border:1px solid rgba(255,255,255,0.92);
+               background:rgba(206,58,44,0.96); color:#fff; font-size:0.85rem; line-height:1;
+               display:flex; align-items:center; justify-content:center; cursor:pointer;
+               opacity:0; transform:scale(0.82); transition:opacity 0.14s, transform 0.14s; }
+    .sc-th:hover .x, .sc-th .x:focus-visible{ opacity:1; transform:none; }
+
+    /* What was read, every value its own editable field. */
+    .sc-reads{ display:flex; flex-direction:column; gap:8px; margin-top:9px; }
+    .sc-read{ display:flex; gap:10px; align-items:flex-start; padding:9px; border-radius:11px;
+              border:1px solid var(--border); background:var(--panel2); }
+    .sc-read .rt{ width:56px; border-radius:7px; background:#000; flex-shrink:0; cursor:zoom-in;
+                  display:block; }
+    .sc-read .fields{ flex:1; min-width:0; display:grid;
+                      grid-template-columns:minmax(0,1fr) 62px 50px; gap:6px; }
+    .sc-read .f{ display:flex; flex-direction:column; gap:2px; min-width:0; }
+    .sc-read .f label{ font-size:0.52rem; text-transform:uppercase; letter-spacing:0.5px;
+                       color:var(--dim); }
+    .sc-read .f input{ font:inherit; font-size:0.74rem; width:100%; min-width:0; padding:5px 8px;
+                       border-radius:7px; border:1px solid var(--border);
+                       background:var(--field, rgba(0,0,0,0.25)); color:var(--text); outline:none; }
+    .sc-read .f input:focus{ border-color:var(--accent); }
+    .sc-read .f input.empty{ border-color:var(--err, #ff6b6b); }
+    /* Examples, not suggestions, so an empty field never reads as filled in. */
+    .sc-read .f input::placeholder{ color:var(--dim); opacity:0.6; font-style:italic; }
+    .sc-read .warn{ grid-column:1/-1; font-size:0.64rem; color:var(--err, #ff6b6b); line-height:1.45; }
+    .sc-read .acts{ grid-column:1/-1; display:flex; flex-wrap:wrap; gap:6px; align-items:center;
+                    margin-top:2px; }
+    .sc-read .acts button{ font:650 0.66rem 'Inter',sans-serif; padding:5px 11px;
+                           border-radius:999px; cursor:pointer; border:1px solid var(--border);
+                           background:none; color:var(--dim); }
+    .sc-read .acts button:hover{ border-color:var(--accent); color:var(--accent); }
+    .sc-read .acts button.go{ border-color:var(--accent); background:var(--accent-soft);
+                              color:var(--accent); }
+    /* Which card this was decided to be, with its picture, beside the fields that decided it. */
+    .sc-read .ref{ flex:1 1 100%; display:flex; align-items:center; gap:8px; padding:5px 7px;
+                   border-radius:9px; border:1px solid var(--accent); background:var(--accent-soft); }
+    .sc-read .ref.meh{ border-color:var(--dim); background:rgba(255,255,255,0.05); }
+    .sc-read .ref.bad{ border-color:var(--err, #ff6b6b); background:rgba(255,107,107,0.1); }
+    .sc-read .ref img{ width:40px; height:56px; object-fit:contain; border-radius:3px;
+                       background:rgba(0,0,0,0.25); }
+    .sc-read .ref b{ display:block; font-size:0.7rem; }
+    .sc-read .ref i{ display:block; font-style:normal; font-size:0.56rem; color:var(--dim);
+                     margin-top:1px; }
+    .sc-read .ref u{ display:block; text-decoration:none; font-size:0.54rem; margin-top:2px;
+                     color:var(--accent); }
+    .sc-read .ref.meh u{ color:var(--dim); }
+    .sc-read .ref.bad u{ color:var(--err, #ff6b6b); }
+    .sc-read .note{ flex:1 1 100%; font-size:0.6rem; color:var(--err, #ff6b6b); }
+    /* Its own photo, at the size of the one it is being compared with. */
+    .sc-read .rt{ width:40px; }
+    .sc-hit.top{ background:var(--accent-soft); }
+    .sc-hit .sc{ font:700 0.6rem ui-monospace,Menlo,Consolas,monospace; color:var(--dim);
+                 min-width:22px; text-align:right; }
+    /* The chooser, opened on the card it is about rather than at the foot of the log. */
+    .sc-open{ margin-top:9px; border-radius:11px; border:1px solid var(--accent);
+              background:var(--panel); overflow:hidden;
+              animation:sc-open 0.2s cubic-bezier(0.22,1,0.36,1); }
+    @keyframes sc-open{ from{ opacity:0; transform:translateY(-6px); } }
+    .sc-open-h{ display:flex; gap:10px; align-items:center; padding:9px 10px;
+                border-bottom:1px solid var(--border); background:var(--accent-soft); }
+    .sc-open-h img{ width:46px; height:64px; object-fit:contain; border-radius:4px;
+                    background:rgba(0,0,0,0.3); flex-shrink:0; }
+    .sc-open-h b{ display:block; font-size:0.74rem; }
+    .sc-open-h i{ display:block; font-style:normal; font-size:0.6rem; color:var(--dim);
+                  margin-top:2px; }
+    .sc-open .sc-hits{ margin-top:0; border:none; border-radius:0; max-height:320px; }
+    /* On the sheet already: ticked and dimmed, and still entirely usable. */
+    .sc-read.saved{ opacity:0.62; }
+    .sc-read.saved .ref{ border-color:var(--ok, #7bd88f); background:rgba(123,216,143,0.12); }
+    .sc-read.saved .ref b::after{ content:' ✓'; color:var(--ok, #7bd88f); }
+    .sc-read.saved:hover{ opacity:1; }
+    /* The catalogue list, offered in the conversation rather than over it. */
+    .sc-hits{ margin-top:9px; max-height:280px; overflow-y:auto; border-radius:10px;
+              border:1px solid var(--border); }
+    .sc-hit{ display:flex; gap:9px; align-items:center; width:100%; text-align:left; cursor:pointer;
+             padding:7px 9px; font:inherit; border:none; border-bottom:1px solid var(--border);
+             background:none; color:var(--text); }
+    .sc-hit:last-child{ border-bottom:none; }
+    .sc-hit:hover{ background:var(--accent-soft); }
+    .sc-hit img, .sc-hit .np{ width:32px; height:44px; object-fit:contain; border-radius:3px;
+                              background:rgba(255,255,255,0.05); flex-shrink:0; }
+    .sc-hit .t{ flex:1; min-width:0; }
+    .sc-hit .t b{ display:block; font-size:0.74rem; overflow:hidden; text-overflow:ellipsis;
+                  white-space:nowrap; }
+    .sc-hit .t span{ font-size:0.6rem; color:var(--dim); }
+    .sc-hit .p{ font:650 0.7rem ui-monospace,Menlo,Consolas,monospace; color:var(--accent); }
+
+    /* Everything in here is done by pressing something, so the typing bar is space spent on a
+       way in nobody uses. Kept rather than removed: the vocabulary behind it still works, and a
+       conversation that cannot be typed at may yet want to be. */
+    .sc-bar{ display:none !important; }
+    .sc-bar-on{ flex-shrink:0; display:flex; gap:7px; align-items:center; padding:9px 12px;
+             border-top:1px solid var(--border); background:var(--panel2); }
+    .sc-bar input{ flex:1; min-width:0; font:inherit; font-size:0.78rem; padding:9px 13px;
+                   border-radius:999px; border:1px solid var(--border);
+                   background:var(--field, rgba(0,0,0,0.25)); color:var(--text); outline:none; }
+    .sc-bar input:focus{ border-color:var(--accent); }
+    .sc-bar button{ width:34px; height:34px; flex-shrink:0; padding:0; border-radius:50%;
+                    cursor:pointer; border:1px solid transparent; background:var(--accent);
+                    color:#241205; font-size:0.9rem; }
+    /* Collapses when empty, so there is no permanent gap under the bar. */
+    .sc-status{ flex-shrink:0; font-size:0.62rem; color:var(--dim); text-align:center;
+                padding:5px 10px 8px; }
+    .sc-status:empty{ display:none; }
+    /* The enlarged clip, pointing back at the row it came from. */
+    #sc-zoom{ position:fixed; z-index:80; display:none; pointer-events:none; padding:5px;
+              border-radius:12px; background:var(--panel); border:1px solid var(--border);
+              box-shadow:0 18px 50px rgba(0,0,0,0.42); }
+    #sc-zoom img{ display:block; width:240px; border-radius:8px; }
+    @media (max-width:900px){
+        .sc-bub{ max-width:92%; font-size:0.84rem; }
+        .sc-bar input{ padding:12px 14px; font-size:0.84rem; }
+        .sc-bar button{ width:40px; height:40px; }
+        .sc-read .fields{ grid-template-columns:1fr 1fr; }
+        .sc-read .fields .f:first-child{ grid-column:1/-1; }
+        #sc-zoom{ display:none !important; }
+    }
+    #wiz{ order:1; display:none; flex-direction:column; flex-shrink:0; }
+    body.wiz #wiz{ display:flex; }
+    /* Back, Start over and which step you are on, in one place that does not move between
+       steps. Buttons that change position between screens have to be found again each time. */
+    .wz-top{ display:flex; padding:8px 10px; flex-shrink:0;
+             border-bottom:1px solid var(--border); background:var(--panel2); }
+    /* Three columns with the middle one sized to its text, so the step readout sits in the
+       centre of the column no matter how wide the two buttons are. */
+    .wz-topin{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:7px;
+               width:100%; }
+    .wz-topin.one{ grid-template-columns:1fr; }
+    .wz-top button{ text-transform:uppercase; white-space:nowrap; }
+    .wz-up{ justify-self:start; }
+    .wz-over{ justify-self:end; }
+    .wz-top button{ font:700 0.6rem inherit; letter-spacing:0.7px; padding:5px 9px; border-radius:7px;
+                    cursor:pointer; border:1px solid var(--border); background:none; color:var(--dim); }
+    .wz-top button:hover:not(:disabled){ border-color:var(--accent); color:var(--accent); }
+    .wz-top button:disabled{ opacity:0.3; cursor:default; }
+    .wz-mid{ display:flex; flex-direction:column; align-items:center; gap:1px; min-width:0; }
+    .wz-mid i{ font:800 0.54rem 'Inter',sans-serif; letter-spacing:1.5px; text-transform:uppercase;
+               font-style:normal; color:var(--accent); white-space:nowrap; }
+    .wz-top .wz-num{ text-align:center; font:800 0.48rem 'Inter',sans-serif; letter-spacing:1.5px;
+                     text-transform:uppercase; color:var(--dim); }
+    .wz-main{ display:flex; flex-direction:column; padding:14px; }
+    /* While it is still asking, it owns the column and sits in the middle of it. A form pinned
+       to the top of an empty panel with buttons stretched across the full width reads as a
+       fragment of something rather than the thing itself. */
+    body.wiz.wz-ask #wiz{ flex:1 1 auto; }
+    body.wiz.wz-ask .wz-main{ flex:1 1 auto; justify-content:center; align-items:center; }
+    body.wiz.wz-ask #co-wrap, body.wiz.wz-ask #ebay-panel{ display:none; }
+    .wz-body{ width:100%; max-width:290px; display:flex; flex-direction:column; gap:10px; }
+    body.wiz.wz-ask .wz-body{ text-align:center; }
+    body.wiz.wz-ask .wz-body .wz-seg{ justify-content:center; }
+    body.wiz.wz-ask .wz-back{ align-self:center; }
+    body.wiz #ask{ display:none; }
+    .wz-step{ font:800 0.48rem 'Inter',sans-serif; letter-spacing:1.5px; text-transform:uppercase;
+              color:var(--dim); }
+    .wz-t{ font:800 1.02rem 'Inter',sans-serif; letter-spacing:0.2px; line-height:1.3; }
+    .wz-mag.sm{ width:30px; height:30px; margin:0 auto 7px; }
+    .wz-mag{ width:58px; height:58px; margin:0 auto 4px; display:block; fill:none;
+             stroke:var(--accent); stroke-width:1.6; stroke-linecap:round; opacity:0.85; }
+    /* A line of text rather than a second button. There is one thing to press on this screen. */
+    .wz-link{ align-self:center; font-size:0.68rem; color:var(--dim); cursor:pointer;
+              text-decoration:underline; text-underline-offset:3px; }
+    .wz-link:hover{ color:var(--accent); }
+    .wz-s{ font-size:0.66rem; color:var(--dim); line-height:1.55; }
+    .wz-row{ display:flex; gap:7px; }
+    .wz-row input{ flex:1; min-width:0; font:inherit; font-size:0.8rem; padding:9px 11px;
+                   border-radius:9px; border:1px solid var(--border);
+                   background:var(--field, rgba(0,0,0,0.25)); color:var(--text); outline:none; }
+    .wz-row input:focus{ border-color:var(--accent); }
+    /* Two shops, side by side, each its own mark over its own name. */
+    .wz-pick{ display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+    .wz-pick button{ padding:14px 10px 12px; border-radius:11px; cursor:pointer; text-align:center;
+                     border:1px solid var(--border); background:var(--panel); color:var(--text);
+                     font:inherit; }
+    .wz-pick button:hover{ border-color:var(--accent); }
+    /* contain, because one of these is square and the other is a wordmark. */
+    .wz-pick button img{ display:block; width:100%; height:34px; object-fit:contain;
+                         margin:0 auto 9px; }
+    .wz-pick button b{ display:block; font-size:0.78rem; }
+    .wz-go{ width:100%; font:700 0.72rem inherit; letter-spacing:1px; padding:10px; border-radius:9px;
+            cursor:pointer; border:1px solid var(--accent); background:var(--accent-soft);
+            color:var(--accent); }
+    .wz-go:disabled{ opacity:0.35; cursor:default; border-color:var(--border); color:var(--dim);
+                     background:none; }
+    .wz-back{ font:700 0.62rem inherit; letter-spacing:0.8px; padding:6px 9px; border-radius:7px;
+              cursor:pointer; border:1px solid var(--border); background:none; color:var(--dim);
+              align-self:flex-start; }
+    /* The two ways out of a finished lookup, the same width and the same shape, each on one
+       line. A long card name used to wrap one of them onto three. */
+    /* Centred and narrow. With the column across the whole window a button the width of it is
+       a line the eye has to travel rather than a thing to press, and everything worth pressing
+       should be findable without looking away from the middle. */
+    .wz-wide{ align-self:center; display:block; width:auto; max-width:min(230px, 100%);
+              margin:4px auto 0; padding:8px 14px; text-align:center; white-space:nowrap;
+              overflow:hidden; text-overflow:ellipsis; }
+    /* Everything in the column that is a button and not a field keeps to the middle and to its
+       own width, for the same reason. */
+    body.wiz #co-out .co-act, body.wiz .wz-mid-row{
+        display:flex; justify-content:center; gap:7px; flex-wrap:wrap;
+    }
+    body.wiz #co-out .co-act button, body.wiz #co-out .co-act a{
+        width:auto; max-width:min(230px, 100%); flex:0 1 auto;
+    }
+    .wz-back:hover{ border-color:var(--accent); color:var(--accent); }
+    .wz-seg{ display:flex; gap:4px; flex-wrap:wrap; }
+    .wz-seg button{ font:700 0.62rem inherit; padding:6px 11px; border-radius:7px; cursor:pointer;
+                    border:1px solid var(--border); background:none; color:var(--dim); }
+    .wz-seg button.on{ border-color:var(--accent); color:var(--accent); background:var(--accent-soft); }
+    .wz-crumb{ font-size:0.58rem; color:var(--dim); }
+    .wz-crumb b{ color:var(--accent); }
+    /* A line down the middle with the questions strung along it, so it reads as a sequence of
+       small asks rather than a form to be completed. */
+    .wz-flow{ position:relative; display:flex; flex-direction:column; gap:20px; padding-top:6px; }
+    .wz-flow::before{ content:''; position:absolute; left:50%; top:0; bottom:14px; width:2px;
+                      margin-left:-1px; background:linear-gradient(180deg,var(--accent),transparent);
+                      opacity:0.35; }
+    .wz-node{ position:relative; border:1px solid var(--border); border-radius:12px;
+              padding:12px 12px 13px; background:var(--panel); text-align:center; }
+    .wz-node i{ display:flex; align-items:center; justify-content:center; gap:7px;
+                font:800 0.52rem 'Inter',sans-serif; letter-spacing:1.5px;
+                text-transform:uppercase; color:var(--accent); font-style:normal; margin-bottom:9px; }
+    /* The same numbered circle the eBay steps use, because they are the same idea. */
+    .wz-node i b{ width:17px; height:17px; border-radius:50%; display:grid; place-items:center;
+                  background:var(--accent); color:#241205; font-size:0.56rem; flex-shrink:0; }
+    .wz-node input{ width:100%; font:inherit; font-size:0.76rem; padding:7px 9px; border-radius:8px;
+                    text-align:center; border:1px solid var(--border);
+                    background:var(--field, rgba(0,0,0,0.25)); color:var(--text); outline:none; }
+    .wz-node input:focus{ border-color:var(--accent); }
+    .wz-node u{ display:block; text-decoration:none; font-size:0.55rem; color:var(--dim);
+                margin-top:5px; line-height:1.45; }
+    /* ── motion ──────────────────────────────────────────────────────────────
+       Two ideas, both small. Things that arrive grow into place with a little overshoot at the
+       end, which reads as friendly rather than mechanical; things you press squash slightly
+       under the finger and spring back. Nothing moves far and nothing lasts long — a wizard you
+       walk through four times an hour cannot afford a slow one. */
+    @keyframes wz-grow{
+        0%   { opacity:0; transform:translateY(-9px) scaleY(0.82); }
+        62%  { opacity:1; transform:translateY(0) scaleY(1.035); }
+        100% { opacity:1; transform:none; }
+    }
+    /* Top to bottom, each waiting on the one above it. */
+    .wz-body > *{ animation:wz-grow 0.34s cubic-bezier(0.22,1.2,0.36,1) both;
+                  transform-origin:top center; }
+    .wz-body > *:nth-child(2){ animation-delay:0.05s; }
+    .wz-body > *:nth-child(3){ animation-delay:0.10s; }
+    .wz-body > *:nth-child(4){ animation-delay:0.15s; }
+    .wz-body > *:nth-child(5){ animation-delay:0.20s; }
+    .wz-flow > .wz-node{ animation:wz-grow 0.36s cubic-bezier(0.22,1.2,0.36,1) both; }
+    .wz-flow > .wz-node:nth-child(1){ animation-delay:0.14s; }
+    .wz-flow > .wz-node:nth-child(2){ animation-delay:0.21s; }
+    .wz-flow > .wz-node:nth-child(3){ animation-delay:0.28s; }
+    .wz-flow > .wz-node:nth-child(4){ animation-delay:0.35s; }
+    .wz-top{ animation:wz-grow 0.26s cubic-bezier(0.22,1.2,0.36,1) both; }
+    #ebay-panel:not([hidden]){ animation:wz-grow 0.3s cubic-bezier(0.22,1.2,0.36,1) both; }
+
+    /* The squish. One list, because the feel should be the same everywhere it is felt. */
+    .btn, .wz-go, .wz-back, .wz-top button, .wz-pick button, .wz-seg button, .wz-node input,
+    .eb-go, .eb-open, .lg-fair, .lg-r2, #grab-page, #side-btn, .fb-foot button, .fb-h button{
+        transition:transform 0.14s cubic-bezier(0.22,1.2,0.36,1), border-color 0.14s ease,
+                   background 0.14s ease, color 0.14s ease;
+    }
+    .btn:active, .wz-go:active, .wz-back:active, .wz-top button:not(:disabled):active,
+    .wz-pick button:active, .wz-seg button:active, .eb-go:active, .eb-open:active,
+    .lg-fair:active, .lg-r2:active, #grab-page:active, #side-btn:active,
+    .fb-foot button:active, .fb-h button:active{ transform:scale(0.94); }
+    .wz-pick button:hover, .wz-node:hover{ transform:translateY(-1px); }
+    .wz-node{ transition:transform 0.16s cubic-bezier(0.22,1.2,0.36,1), border-color 0.16s ease; }
+
+    /* The departure board. Each row drops in a beat after the one above with a flash of the
+       accent behind it, so a list of forty listings arrives as a list rather than all at once.
+       The stagger is capped in the script, or a long sheet would still be dealing itself out
+       after you had finished reading it. */
+    @keyframes row-land{
+        0%   { opacity:0; transform:translateY(-7px) scaleY(0.7);
+               background:var(--accent); color:#241205; }
+        55%  { opacity:1; transform:translateY(0) scaleY(1.04); }
+        78%  { background:var(--accent-soft); }
+        100% { opacity:1; transform:none; background:transparent; }
+    }
+    .lg-r2.land, .lg-row.land{ animation:row-land 0.4s cubic-bezier(0.22,1.1,0.36,1) both;
+                               animation-delay:calc(var(--i,0) * 26ms); transform-origin:top center; }
+
+    @media (prefers-reduced-motion: reduce){
+        .wz-body > *, .wz-flow > .wz-node, .wz-top, #ebay-panel:not([hidden]),
+        .lg-r2.land, .lg-row.land{ animation:none !important; }
+        .btn, .wz-go, .wz-back, .wz-top button, .wz-pick button, .wz-seg button,
+        .eb-go, .eb-open, .lg-fair, .lg-r2, #grab-page, #side-btn,
+        .fb-foot button, .fb-h button{ transition:none; }
+    }
+    .wz-rare{ display:grid; grid-template-columns:repeat(3,1fr); gap:5px; }
+    .wz-rare button{ padding:6px 4px; text-align:center; }
+    .wz-rare button b{ display:block; font-size:0.68rem; }
+    .wz-rare button s{ display:block; text-decoration:none; font-size:0.5rem; opacity:0.75;
+                       margin-top:2px; line-height:1.3; }
+    #ebay-panel{ order:20; flex-shrink:0; margin:8px 8px 0; padding:10px 11px; border-radius:11px;
+                 border:1px solid var(--border); background:var(--panel2); max-height:52%;
+                 overflow-y:auto; }
+    /* While the two pages are being pasted in, this is the step — so it takes the room the
+       column has rather than half of it with its own scrollbar inside a scrollbar. The empty
+       sheet underneath is hidden for the same reason: there is nothing in it to read yet, and
+       it was pushing the thing being used into a strip. */
+    body.wiz.eb-pre #ebay-panel{ flex:1 1 auto; max-height:none; min-height:0; margin-bottom:8px; }
+    body.wiz.eb-pre #co-wrap{ display:none; }
+    #ebay-panel .ep-h{ display:flex; align-items:center; gap:8px; margin-bottom:7px; }
+    #ebay-panel .ep-i{ font-size:1.05rem; opacity:0.8; }
+    #ebay-panel .ep-t{ font:800 0.62rem 'Inter',sans-serif; letter-spacing:1.2px;
+                       text-transform:uppercase; }
+    #ebay-panel .ep-b{ font-size:0.7rem; line-height:1.6; color:var(--dim); }
+    /* Narrower and taller than the column would make them: what goes in is a whole page of
+       copied text, and a wide short field looks like somewhere to type a line. */
+    #ebay-panel textarea{ display:block; width:80%; margin:7px auto 0; min-height:65px;
+                          font-size:0.7rem; }
+    .eb-lede{ border:1px solid var(--border); border-radius:10px; padding:10px 11px;
+              margin-bottom:9px; background:var(--panel); text-align:center;
+              font-size:0.68rem; line-height:1.6; color:var(--text); }
+    .eb-box{ border:1px solid var(--border); border-radius:10px; padding:3px 11px 11px;
+             background:var(--panel); }
+    .eb-step{ display:flex; align-items:center; gap:7px; margin:11px 0 6px; justify-content:center;
+              font:800 0.56rem 'Inter',sans-serif; letter-spacing:1.2px; text-transform:uppercase;
+              color:var(--text); }
+    .eb-step b{ width:17px; height:17px; border-radius:50%; display:grid; place-items:center;
+                background:var(--accent); color:#241205; font-size:0.56rem; flex-shrink:0; }
+    .eb-q{ font-size:0.62rem; margin:7px 0 0; color:var(--dim); line-height:1.5; }
+    .eb-q b{ color:var(--accent); }
+    .eb-go, .eb-open{ display:block; margin:0 auto; min-width:150px; max-width:210px;
+                      font:700 0.66rem inherit; letter-spacing:0.9px; padding:7px 14px;
+                      border-radius:8px; cursor:pointer; border:1px solid var(--accent);
+                      background:var(--accent-soft); color:var(--accent); }
+    .eb-open{ border-color:var(--border); background:none; color:var(--text); }
+    .eb-go:disabled, .eb-open:disabled{ opacity:0.35; cursor:not-allowed;
+                                        border-color:var(--border); color:var(--dim);
+                                        background:none; }
+    /* Until it has been pressed, it says so. Breathing rather than blinking: it has to carry
+       across a full column without becoming the thing you are looking at. */
+    @keyframes eb-wait{
+        0%, 100% { box-shadow:0 0 0 0 rgba(255,140,40,0.0); }
+        50%      { box-shadow:0 0 13px 2px rgba(255,140,40,0.36); }
+    }
+    .eb-open.waiting{ border-color:var(--accent); color:var(--accent);
+                      background:var(--accent-soft); animation:eb-wait 1.9s ease-in-out infinite; }
+    .eb-open.waiting:hover{ animation:none; box-shadow:0 0 15px 3px rgba(255,140,40,0.42); }
+    @media (prefers-reduced-motion: reduce){ .eb-open.waiting{ animation:none; } }
+    body.wiz #eb-done{ display:none; }
+    /* The guided search has one way back to the printings, on its last step, worded for the card
+       you looked up. A second button saying "View listings" a column away was the same door with
+       a worse label. !important because the old form sets this one's display inline. */
+    body.wiz #alt-again{ display:none !important; }
+    /* And nothing offers to save while the questions are still being asked — the sheet it would
+       save is whatever the last search left behind, not this one. */
+    body.wz-ask #grab-page{ display:none !important; }
+    .eb-note{ font-size:0.62rem; color:var(--dim); line-height:1.6; margin-top:8px; }
+    /* Three ways to divide the window rather than two: both of them, the sheet on its own, or
+       the search on its own. There is a screen and a job that wants each one, and a button that
+       only ever gave two of the three answers was a button somebody had to work around. */
+    body.side-off #app{ grid-template-columns:minmax(0,1fr) 0; }
+    body.side-off #side{ display:none; }
+    body.body-off #app{ grid-template-columns:0 minmax(0,1fr); }
+    /* Zero width and clipped rather than display:none. The button that brings this column back
+       lives on its seam, and a button inside a display:none column cannot be pressed to bring
+       that column back — which is how the sheet became unreachable. */
+    body.body-off #body{ overflow:visible; min-width:0; width:0; }
+    body.body-off #frame-col{ display:none; }
+    /* Straddling the divide between the two columns — z-index because the side column is
+       positioned too, and paints later, so it would otherwise cover this. */
+    #body{ position:relative; }
+    #side-btn{ position:absolute; right:-12px; top:50%; margin-top:-27px; z-index:9;
+               width:24px; height:54px; border-radius:8px; padding:0; cursor:pointer;
+               border:1px solid var(--border); background:var(--panel2); color:var(--dim);
+               font:0.72rem inherit; line-height:1; }
+    #side-btn:hover{ border-color:var(--accent); color:var(--accent); }
+    /* The mark it wears is which two columns are on, drawn rather than lettered: three
+       characters somebody learns once beats three words read every time. */
+    #side-btn{ font-size:0.8rem; }
+    /* With a column away there is no seam to sit on, so it waits at the edge the missing one
+       will come back from. */
+    body.side-off #side-btn{ right:4px; color:var(--accent); border-color:var(--accent); }
+    /* The left one gone, the button belongs to the column that is left, and #body is not the
+       thing it is positioned inside any more. */
+    body.body-off #side-btn{ position:fixed; left:6px; right:auto; top:50%;
+                             color:var(--accent); border-color:var(--accent); }
+    #ask{ display:flex; flex-direction:column; gap:7px; padding:9px 10px; flex-shrink:0;
+          border-bottom:1px solid var(--border); background:var(--panel2); }
+    #ask .ask-row{ display:flex; gap:6px; }
+    #ask #f-q{ flex:1; min-width:0; }
+    #ask .seg, #ask .cb-set{ flex-wrap:wrap; }
+    /* Side by side while there is room, stacked when there is not. */
+    .ask-two{ display:flex; gap:10px; flex-wrap:wrap; }
+    .ask-f{ display:flex; flex-direction:column; gap:4px; min-width:0; }
+    .ask-l{ font:800 0.48rem 'Inter',sans-serif; letter-spacing:1.4px; text-transform:uppercase;
+            color:var(--dim); }
+    #ask .btn.icon{ padding:0; width:34px; flex-shrink:0; display:grid; place-items:center; }
+    #ask .btn.icon svg{ width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:1.7;
+                        stroke-linecap:round; stroke-linejoin:round; }
+    #ask #urlbar{ margin:0; }
+    #ask #ub-input{ cursor:default; opacity:0.75; }
+    #lookup .sp{ flex:1; }
+    #side{ position:relative; border-left:1px solid var(--border); background:var(--panel); display:flex; flex-direction:column; min-height:0; overflow:hidden; }
+
+    .side-h{ display:flex; align-items:center; gap:7px; padding:8px 11px; border-bottom:1px solid var(--border);
+        font-size:0.6rem; letter-spacing:1.8px; text-transform:uppercase; color:var(--accent); font-weight:700; }
+    .side-h .c{ color:var(--dim); font-weight:400; letter-spacing:0.4px; text-transform:none; font-size:0.66rem; margin-left:auto; }
+    #results{ flex:1; overflow-y:auto; padding:9px; overscroll-behavior:contain; }
+    .res{ border:1px solid var(--border); border-radius:9px; background:var(--panel2); padding:9px; margin-bottom:8px; }
+    .res .top{ display:flex; gap:9px; }
+    .res img{ width:46px; border-radius:5px; flex-shrink:0; background:var(--field); align-self:flex-start; }
+    .res .nm{ font-size:0.82rem; font-weight:700; color:var(--text); line-height:1.35; }
+    .res .meta{ font-size:0.64rem; color:var(--dim); margin-top:3px; line-height:1.55; }
+    .prices{ display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+    .pz{ border:1px solid var(--border); border-radius:6px; padding:4px 8px; background:var(--panel); }
+    .pz .k{ font-size:0.5rem; letter-spacing:1.1px; text-transform:uppercase; color:var(--dim); font-weight:700; }
+    .pz .m{ color:var(--accent); font-weight:800; font-size:0.82rem; font-variant-numeric:tabular-nums; }
+    .pz .r{ color:var(--dim); font-size:0.58rem; }
+    .acts{ display:flex; gap:5px; margin-top:8px; flex-wrap:wrap; }
+    .acts button, .acts a{ font-size:0.6rem; padding:5px 9px; border-radius:6px; border:1px solid var(--border);
+        background:var(--panel); color:var(--dim); cursor:pointer; font-family:inherit; text-decoration:none; white-space:nowrap; }
+    .acts button:hover, .acts a:hover{ color:var(--accent); border-color:var(--accent); }
+    .empty{ text-align:center; padding:26px 12px; color:var(--dim); }
+    .empty .big{ font-size:1.7rem; margin-bottom:8px; opacity:0.5; }
+    .empty .t{ font-size:0.82rem; color:var(--text); margin-bottom:5px; font-weight:600; }
+    .empty .s{ font-size:0.7rem; line-height:1.65; }
+    #theme-pop{ position:fixed; z-index:260; display:none; background:var(--panel); border:1px solid var(--border); border-radius:11px; box-shadow:0 16px 44px rgba(0,0,0,0.5); padding:14px; width:220px; }
+    .tp-h{ font-size:0.58rem; letter-spacing:2px; text-transform:uppercase; color:var(--dim); font-weight:700; margin-bottom:8px; }
+    .tp-modes{ display:flex; gap:6px; margin-bottom:12px; }
+    .tp-modes button{ flex:1; padding:7px; border-radius:7px; border:1px solid var(--border); background:var(--panel2); color:var(--dim); cursor:pointer; font-family:inherit; font-size:0.7rem; }
+    .tp-modes button:hover{ color:var(--accent); border-color:var(--accent); }
+    .tp-swatches{ display:flex; flex-wrap:wrap; gap:7px; }
+    .tp-sw{ width:24px; height:24px; border-radius:50%; cursor:pointer; border:2px solid transparent; }
+    .tp-sw.on{ border-color:var(--text); }
+    #toast{ position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:var(--panel2); border:1px solid var(--border); border-radius:9px;
+        padding:9px 17px; font-size:0.75rem; color:var(--text); opacity:0; transition:0.25s; pointer-events:none; z-index:120; }
+    #toast.on{ opacity:1; }
+    /* ── who is here, and what is being said ────────────────────────────────
+       Both of these are the Lab's, brought across rather than reinvented: the
+       same endpoints, the same shapes, sized for a bar rather than a page. */
+    .pw-me{ display:flex; align-items:center; gap:8px; flex-shrink:0; text-decoration:none;
+            padding:3px 10px 3px 3px; border-radius:40px; border:1px solid var(--border);
+            background:var(--panel2); color:var(--text); }
+    .pw-me:hover{ border-color:var(--accent); }
+    .pw-me .pic{ width:26px; height:26px; border-radius:50%; flex-shrink:0;
+                 background:var(--field) center/cover no-repeat; border:1px solid var(--border);
+                 display:grid; place-items:center; font:700 0.6rem inherit; color:var(--accent);
+                 text-transform:uppercase; }
+    .pw-me .who{ display:flex; flex-direction:column; line-height:1.1; }
+    .pw-me .who b{ font-size:0.7rem; max-width:120px; overflow:hidden; text-overflow:ellipsis;
+                   white-space:nowrap; }
+    .pw-me .who i{ font-style:normal; font-size:0.5rem; letter-spacing:1.4px;
+                   text-transform:uppercase; color:var(--accent); }
+    .pw-msg{ position:relative; padding:0 9px; }
+    .pw-msg svg{ width:17px; height:17px; display:block; }
+    .pw-badge{ position:absolute; top:-5px; right:-5px; min-width:15px; height:15px; padding:0 4px;
+               border-radius:8px; background:var(--err); color:#fff; font:800 0.52rem inherit;
+               line-height:15px; text-align:center; }
+    #pw-chat{ position:fixed; inset:0; z-index:130; display:flex; align-items:flex-start;
+              justify-content:flex-end; padding:56px 14px 14px; background:rgba(0,0,0,0.42); }
+    #pw-chat[hidden]{ display:none; }
+    body.light #pw-chat{ background:rgba(23,21,20,0.22); }
+    .pw-card{ width:min(380px, 100%); max-height:min(70vh, 560px); display:flex;
+              flex-direction:column; border-radius:12px; border:1px solid var(--border);
+              background:var(--panel); box-shadow:0 20px 60px rgba(0,0,0,0.5); overflow:hidden; }
+    .pw-h{ display:flex; align-items:center; gap:7px; padding:8px 10px;
+           border-bottom:1px solid var(--border); background:var(--panel2); }
+    .pw-h b{ font-size:0.76rem; }
+    .pw-h .btn{ height:26px; padding:0 9px; font-size:0.58rem; }
+    .pw-log{ flex:1; min-height:0; overflow-y:auto; padding:10px; display:flex;
+             flex-direction:column; gap:8px; }
+    .pw-empty{ color:var(--dim); font-size:0.7rem; text-align:center; padding:18px 0; }
+    .pw-m{ display:flex; flex-direction:column; gap:2px; }
+    .pw-m .w{ font-size:0.56rem; letter-spacing:0.8px; text-transform:uppercase; color:var(--dim); }
+    .pw-m .t{ font-size:0.76rem; line-height:1.5; padding:7px 10px; border-radius:9px;
+              background:var(--panel2); border:1px solid var(--border); overflow-wrap:anywhere; }
+    .pw-m.mine{ align-items:flex-end; }
+    .pw-m.mine .t{ background:var(--accent-soft); border-color:var(--accent); }
+    .pw-bar{ display:flex; gap:7px; padding:9px 10px; border-top:1px solid var(--border);
+             background:var(--panel2); }
+    .pw-bar input{ flex:1; min-width:0; height:32px; border-radius:7px; padding:0 10px;
+                   border:1px solid var(--border); background:var(--field); color:var(--text);
+                   font:inherit; font-size:0.76rem; outline:none; }
+    .pw-bar input:focus{ border-color:var(--accent); }
+    body.mob .pw-me .who{ display:none; }
+    body.mob #pw-chat{ padding:52px 8px 8px; justify-content:center; }
+    /* A card landing in the sheet is confirmed at the top of the window rather than the foot of
+       it. The sheet itself is at the top, so that is where the eye already is; a notice at the
+       bottom is a notice somebody has to go and look for. */
+    #toast.top{ bottom:auto; top:14px; background:var(--accent); color:#0b0b0d; font-weight:700;
+        border-color:var(--accent); font-size:0.82rem; padding:10px 20px;
+        box-shadow:0 8px 26px rgba(0,0,0,0.4); }
+    #toast.top.on{ animation:toast-drop 0.22s cubic-bezier(0.16,1,0.3,1); }
+    @keyframes toast-drop{ from{ opacity:0; transform:translate(-50%,-14px) scale(0.96); }
+                           to  { opacity:1; transform:translate(-50%,0) scale(1); } }
+    @media (prefers-reduced-motion: reduce){ #toast.top.on{ animation:none; } }
+    @media (max-width:900px){ #title{ display:none; } }
+
+    /* ── on a phone ───────────────────────────────────────────────────────────
+       The reference is a 27-inch screen at 1440p: everything small enough that a
+       whole working surface fits at once, and no smaller. On a phone that means
+       the chrome comes down — controls to a thumb's height rather than a
+       desktop's, labels to the smallest size that is still a size — while the
+       text you actually read is left where it is. Shrinking the numbers to fit
+       more numbers on is how a tool stops being usable outdoors. */
+    body.mob{ --pad:6px; }
+    body.mob .btn{ height:34px; padding:0 12px; font-size:0.63rem; letter-spacing:0.9px; }
+    body.mob .btn.sm{ height:30px; padding:0 10px; }
+    body.mob #lookup{ padding:5px 7px; gap:5px; }
+    body.mob #f-q{ height:34px; font-size:0.9rem; }
+    body.mob .cb{ height:30px; padding:0 8px; font-size:0.58rem; }
+    body.mob .fld label{ font-size:0.5rem; letter-spacing:1px; }
+    body.mob #status{ padding:4px 8px; font-size:0.62rem; }
+    body.mob #ledger{ margin:5px; border-radius:10px; }
+    body.mob #co-wrap{ padding:5px; }
+    body.mob .sc-log{ padding:8px; }
+    /* Legibility floor. Anything that carries a figure or a card's name keeps a
+       size a person can read at arm's length in daylight. */
+    body.mob .lg-r, body.mob .lg-nm, body.mob .lg-v,
+    body.mob .sc-b, body.mob .c-say{ font-size:0.82rem; }
+
+    /* The old search is not offered here. It is a wide form with a great many
+       controls on it, and a phone is the one place it cannot be used — so the
+       guided one is not a preference on a phone, it is the interface. */
+    body.mob #wiz-btn{ display:none !important; }
+
+    /* ── portrait: one thing at a time ────────────────────────────────────────
+       There is not room for a conversation and a spreadsheet side by side on a
+       screen this shape, and splitting it gives you neither. The page shows one
+       of them, full height, and the bar at the foot says which. */
+    body.mob.port #app{
+        grid-template-columns:1fr; grid-template-rows:auto minmax(0,1fr) auto;
+    }
+    body.mob.port #body{ grid-column:1; grid-row:2; min-height:0; }
+    body.mob.port #side{
+        grid-column:1; grid-row:2; width:auto; max-height:none; min-height:0;
+        border-left:none; overflow:hidden;
+    }
+    /* Whichever pane is not being looked at is out of the way entirely, rather
+       than squeezed to nothing — a flex child at zero height still lays out. */
+    body.mob.port.pane-db #side{ display:none; }
+    body.mob.port.pane-db #frame-wrap{ display:none; }
+    body.mob.port.pane-db #ledger{ display:flex; }
+    body.mob.port.pane-find #body{ display:none; }
+    body.mob.port.pane-find #side{ display:flex; }
+    /* Fixed to the foot of the window rather than a row of the grid: it sits beside #app in
+       the document, not inside it, so grid-row placed it nowhere and it rendered under the fold.
+       #app gives up the same height in padding, so nothing hides behind it. */
+    body.mob.port #swap{
+        position:fixed; left:0; right:0; bottom:0; z-index:40;
+        display:flex; gap:0; padding:0 0 env(safe-area-inset-bottom, 0);
+        border-top:1px solid var(--border); background:var(--panel);
+    }
+    body.mob.port #app{ padding-bottom:calc(46px + env(safe-area-inset-bottom, 0)); }
+    #swap{ display:none; }
+    #swap button{
+        flex:1 1 0; min-width:0; height:46px; border:none; cursor:pointer;
+        background:none; color:var(--dim); font-family:inherit; font-weight:700;
+        font-size:0.66rem; letter-spacing:1.4px; text-transform:uppercase;
+        display:flex; align-items:center; justify-content:center; gap:7px;
+        border-top:2px solid transparent; transition:color 0.15s, border-color 0.15s;
+    }
+    #swap button.on{ color:var(--accent); border-top-color:var(--accent);
+                     background:var(--accent-soft); }
+    #swap .pip{
+        min-width:19px; height:19px; padding:0 5px; border-radius:999px;
+        background:var(--accent); color:#0b0b0d; font-size:0.6rem; line-height:19px;
+    }
+    #swap .pip:empty{ display:none; }
+
+    /* ── landscape: the whole screen, both columns ────────────────────────────
+       A phone on its side is a small wide screen, which is the shape this page
+       was drawn for. It keeps the two columns and simply stops reserving room it
+       has not got: the side column takes a share rather than a fixed 320px, and
+       the height comes from dvh so the browser's own chrome is not counted
+       twice. */
+    /* Driven by the class the script sets, not by a second breakpoint written next to it. Two
+       places deciding what a phone is will disagree eventually, and a Pro Max on its side is
+       932px wide — over any threshold picked by looking at the smaller ones. */
+    body.mob.land #app{ grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); height:100dvh; }
+    body.mob.land #lookup{ padding:calc(3px + env(safe-area-inset-top)) 6px 3px; gap:4px; }
+    body.mob.land .btn{ height:30px; }
+    body.mob.land #f-q{ height:30px; }
+    body.mob.land #status{ padding:2px 7px; }
+    body.mob.land #ledger{ margin:4px; }
+    /* Not a phone, but a narrow window: the old stacking is what was wanted there. */
+    @media (max-width:820px){
+        body:not(.mob) #app{ grid-template-columns:1fr;
+              grid-template-rows:auto auto minmax(0,0.8fr) minmax(0,1.2fr); }
+        body:not(.mob) #side{ grid-column:1; grid-row:4; width:auto; border-left:none;
+               border-top:1px solid var(--border); max-height:none; min-height:0;
+               overflow:hidden; }
+        .fld{ min-width:96px; }
+    }
+
+'
+      + '@page{ size:letter; margin:0.5in; }'
+      + 'body{ margin:0; color:#111; background:#fff;'
+      + ' font:11px/1.35 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }'
+      + 'h1{ font-size:15px; margin:0 0 2px; letter-spacing:0.4px; }'
+      + '.when{ font-size:9px; color:#666; margin-bottom:9px; }'
+      + 'table{ width:100%; border-collapse:collapse; }'
+      + 'th{ text-align:left; font-size:8px; letter-spacing:1px; text-transform:uppercase;'
+      + ' color:#555; border-bottom:1.2px solid #222; padding:0 5px 3px; }'
+      + 'td{ padding:3px 5px; border-bottom:0.5px solid #ddd; vertical-align:top; }'
+      + 'tr{ page-break-inside:avoid; }'
+      + 'thead{ display:table-header-group; }'
+      + '.n{ color:#999; width:22px; }'
+      + '.q{ font-family:ui-monospace,Menlo,Consolas,monospace; white-space:nowrap; }'
+      + '.r{ text-align:right; }'
+      + '.sm{ font-size:9.5px; color:#555; }'
+      + 'tfoot td{ border-top:1.2px solid #222; border-bottom:none; padding-top:6px;'
+      + ' font-weight:700; }'
+      + '.sums{ margin-top:9px; font-size:10px; }'
+      + '.sums b{ font-family:ui-monospace,Menlo,Consolas,monospace; }'
+      + '.sums div{ margin-top:2px; }'
+      + '

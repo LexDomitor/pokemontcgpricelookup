@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<script>/* The style, before anything is painted — the same key the Lab writes, so a preference
+   set there is already in force when this opens. Cassette unless the account says Legacy. */
+(function(){try{var t=localStorage.getItem('ptcg-style');
+if(t!=='dark')document.documentElement.className+=' pre-light';}catch(e){}})();</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>SEARCHDOG - Pokemon TCG Price Lookup</title>
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body data-accent="gold">
+<div id="app">
+    <!-- The top bar keeps its name and nothing else. Everything you fill in went to the side,
+         beside the figures it produces, which is where you are already looking. -->
+    <div id="lookup">
+        
+        <div id="title">Arcane 9 Labs <span>|</span> <b>SEARCHDOG</b> <span>|</span>
+             Price Lookup, Tracker &amp; Metrics</div>
+        <span class="sp"></span>
+        <!-- Guided is the search now rather than one of two, so there is nothing to switch
+             between and no button for it. The old form is still in the page and still works —
+             a new arrangement of a working tool should not take the old one out of the world —
+             but nothing here offers it. The theme picker and the feedback note are hidden for
+             the same reason: still here, no longer on the bar. -->
+        <button class="btn ghost" id="wiz-btn" hidden title="The guided search">☰ Guided</button>
+        <button class="btn ghost" id="theme-btn" hidden title="Theme">🎨</button>
+        <!-- Who is signed in, and the way to say something to whoever else is. The Lab has both
+             of these in its own top right; a tool somebody spends an afternoon in should not
+             make them go back to the Lab to use either. -->
+    </div>
+
+    <div id="body">
+        <!-- On the seam it moves, rather than up in the title bar away from the thing it does.
+             It lives outside #body, because a button that brings a hidden column back cannot be
+             inside the column that is hidden. -->
+        <!-- One button, three answers, in a ring. It says which one is in force and what the
+             next press will leave you with, so nothing has to be pressed to find out. -->
+        <button id="side-btn" title="Both columns">⇔</button>
+        <div id="frame-col">
+            <div id="status" style="display:none"><span class="dot"></span><span class="msg"></span><button id="reload" style="display:none">↻ Retry</button></div>
+            <!-- The sheet. It sits where the framed site used to, which is now free — and it is
+                 a better use of the space than a copy of somebody else's website was. -->
+            <div id="ledger" style="position:relative">
+                <!-- The three menus that act on the whole sheet. Written here rather than built
+                     on demand: they are part of this panel, they are named, and a lookup for one
+                     of them can be checked against the page like any other. -->
+                <div id="lg-tout" class="lg-menu"></div>
+                <div id="lg-pout" class="lg-menu"></div>
+                <div id="lg-bout" class="lg-menu"></div>
+                <div class="lg-h">
+                    <!-- How many, then what it is called, then which one it is. A sheet you can
+                         hand to somebody needs a name of its own; "Saved cards" describes the
+                         drawer, not the thing in it. -->
+                    <span class="lg-n" id="lg-n" title="Cards on this sheet">0</span>
+                    <input class="lg-name" id="lg-name" maxlength="60" spellcheck="false"
+                           value="Saved cards" title="What this sheet is called">
+                    <span class="lg-id" id="lg-id" title="This sheet’s id"></span>
+                    <button id="lg-live" title="Save a named copy in this browser">◌ Save sheet</button>
+                    <button id="lg-ro" hidden title="Stop anybody else writing over it">Read only</button>
+                    <span class="sp"></span>
+                    <!-- How fresh the figures are, where the thing that refreshes them is. -->
+                    <span id="lg-fresh" title="Nothing has been synced yet">&#9679;</span>
+                    <!-- Advanced, Set market, Set buyback and Sync market are all things done to
+                         the whole sheet rather than to a card, so they live together. Four
+                         buttons in a row was four-fifths of the bar spent on one idea. -->
+                    <!-- Loading somebody else's sheet is a thing done to this panel, so it is
+                         on this panel's bar rather than up in the page's. -->
+                    <button id="db-btn" title="Load a sheet saved in this browser">&#9067; Load database</button>
+                    <button id="lg-tools" title="Everything that acts on the whole sheet">&#9881; Sheet tools</button>
+                    <button id="lg-adv" hidden title="Show the rest of what is known about each card">Advanced</button>
+                    <button id="lg-sync" hidden title="Pull fresh TCGplayer figures for every card and work its market out again">&#8635; Sync market</button>
+                    <button id="lg-price" hidden title="Set the market price of the ticked rows">&#8721; Set market</button>
+                    <button id="lg-buy" hidden title="Set the buy price of the ticked rows">&#37; Set buyback</button>
+                    <button id="lg-export" title="Export or send to a sheet">&#8681; Export</button>
+                    <button id="lg-hide" hidden title="Put the ticked rows aside">Exclude</button>
+                    <button id="lg-show" hidden title="Put the ticked rows back">Restore</button>
+                    <button id="lg-del" class="bad" hidden title="Remove the ticked rows">Delete</button>
+                    <!-- Set aside rather than deleted: a card you are not pricing today is not a
+                         card you are finished with. -->
+                    <button id="lg-tab" hidden title="Show the ones set aside">Excluded <b id="lg-tabn">0</b></button>
+                </div>
+                <div class="lg-cols">
+                    <span class="c-k"><input type="checkbox" id="lg-all" title="Select every row"></span>
+                    <span class="c-nm">Card</span><span class="c-st">Set</span>
+                    <span class="adv c-code">Code</span><span class="adv c-lang">Lang</span>
+                    <span class="adv c-cat">Category</span>
+                    <span class="c-n">Market</span><span class="c-n">Buy</span>
+                    <span class="c-n">Sale</span><span class="adv c-tr">Trend</span>
+                    <span class="c-sr">Source</span><span class="c-x"></span>
+                </div>
+                <div id="lg-rows"></div>
+                <!-- Over the whole sheet, header included: while a sync is walking the list,
+                     every button on it would be acting on figures that are about to change. -->
+                <div id="lg-lock">
+                    <div class="ring"></div>
+                    <div class="cnt" id="lg-lock-n"></div>
+                    <div class="who" id="lg-lock-w"></div>
+                </div>
+                <div id="lg-ask">
+                    <div class="card">
+                        <div class="h" id="lg-ask-h">Are you sure?</div>
+                        <div class="b" id="lg-ask-b"></div>
+                        <div class="r">
+                            <button id="lg-ask-no">Cancel</button>
+                            <button id="lg-ask-yes" class="go">Confirm</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- What the ticked rows come to. Only up when something is ticked, because a
+                     row of zeroes is a worse answer than no row at all. -->
+                <div id="lg-sum" hidden>
+                    <span class="s-n"><b id="sum-n">0</b> selected</span>
+                    <span class="s-b"><i>Market</i><b id="sum-market">$0.00</b></span>
+                    <span class="s-b"><i>Buy</i><b id="sum-buy">$0.00</b></span>
+                    <span class="s-b pf"><i>Spread</i><b id="sum-diff">$0.00</b></span>
+                    <!-- Markup, not margin. It is the spread over what you paid, which is the
+                         number a buyer is working to; margin is the spread over what you sell
+                         for, and the two are different figures. Buying at 80% is a 25% markup
+                         and a 20% margin, and calling it margin invited exactly the arithmetic
+                         that does not add up: 80 + 25. -->
+                    <span class="s-b" id="sum-pct-box"
+                          title="Spread against what you paid. Buying at 80% of market is a 25% markup — and a 20% margin on the sale price.">
+                        <i>Markup</i><b id="sum-pct">—</b></span>
+                </div>
+                <div class="lg-empty" id="lg-empty">
+                    Nothing saved yet. Look a card up, then press
+                    <b>Save card data</b> to put it here.
+                </div>
+            </div>
+            <div id="frame-wrap">
+                <iframe id="site-frame" referrerpolicy="no-referrer"></iframe>
+                <div id="frame-msg" class="on">
+                    <div class="big">🔍</div>
+                    <div class="t">Ready</div>
+                    <div class="s">Fill in the card, pick <b>TCGplayer</b> or <b>eBay sold</b>, and press Search.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="side">
+        <!-- The guided search. It collects exactly what the old form collects and calls the same
+             things with it — one question at a time instead of every control at once. -->
+        <div id="wiz"></div>
+        <!-- Scanning is a back-and-forth: you hand it a photo, it tells you what it found, you
+             hand it another. A log that grows downwards fits that shape; a form does not. -->
+        <div id="scan">
+            <div class="sc-log" id="sc-log"></div>
+            <div class="sc-bar">
+                <input id="sc-say" placeholder="Type here, or use the buttons above\u2026"
+                       autocomplete="off">
+                <button id="sc-send" title="Send">&#8593;</button>
+            </div>
+            <div class="sc-status" id="sc-status"></div>
+            <input type="file" id="sc-file" accept="image/*" multiple hidden>
+            <input type="file" id="sc-shot" accept="image/*" capture="environment" hidden>
+        </div>
+        <div id="sc-zoom"><img alt=""></div>
+        <!-- Feedback goes to a person, not a form. It is the same conversation the lab's messages
+             panel would open, on its own — no list, and nobody else's threads are ever asked
+             for or drawn. -->
+        <!-- Every sheet that has been saved locally. Loading one replaces what is on screen, so it
+             says so first. -->
+        <!-- Cards already on the saved sheets. Not a list of sheets: a list of cards, so "that
+             one again" is a thing you can say about somebody else's lookup from last week. -->
+        <div id="dbc-back">
+            <div id="dbc-card">
+                <div class="fb-h"><span>Cards in your databases</span>
+                    <button id="dbc-x" title="Close">✕</button></div>
+                <div class="dbc-find"><input id="dbc-q" placeholder="Filter by name, set or number"
+                                             autocomplete="off"></div>
+                <div class="fb-body" id="dbc-list"></div>
+            </div>
+        </div>
+        <div id="db-back">
+            <div id="db-card">
+                <div class="fb-h"><span>Load a database</span><button id="db-x" title="Close">✕</button></div>
+                <div class="fb-body" id="db-list"></div>
+            </div>
+        </div>
+
+        <div id="ask">
+            <div class="ask-row">
+                <input id="f-q" placeholder="Card name, set, number…" autocomplete="off">
+                <button class="btn" id="go">Search</button>
+                <!-- Fills the box from something already recorded and searches it — so the icon
+                     is a card going into the field, not a magnifying glass. -->
+                <button class="btn ghost icon" id="from-db"
+                        title="Fill this in from a card in your databases and search it">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <ellipse cx="8" cy="5" rx="5" ry="2.2"/>
+                        <path d="M3 5v9c0 1.2 2.2 2.2 5 2.2s5-1 5-2.2V5"/>
+                        <path d="M3 9.5c0 1.2 2.2 2.2 5 2.2s5-1 5-2.2"/>
+                        <path d="M15 12h7"/><path d="M19 9l3 3-3 3"/>
+                    </svg>
+                </button>
+            </div>
+            <!-- Both pickers on one line, each said out loud. A row of unlabelled toggles is a
+                 guess about what they toggle. -->
+            <div class="ask-two">
+                <div class="ask-f">
+                    <span class="ask-l">Marketplace</span>
+                    <div class="seg" id="src-seg">
+                        <button data-src="tcgplayer" class="on">TCGplayer</button>
+                        <button data-src="ebay">eBay sold</button>
+                    </div>
+                </div>
+                <div class="ask-f">
+                    <span class="ask-l">Language</span>
+                    <div class="seg" id="lang-seg" title="Which printings to search for">
+                        <button data-lang="both" class="on">Both</button>
+                        <button data-lang="en">EN</button>
+                        <button data-lang="jp">JP</button>
+                        <button data-lang="kr" style="display:none">KR</button>
+                        <button data-lang="cn" style="display:none">CN</button>
+                    </div>
+                </div>
+                <div class="ask-f">
+                    <!-- Conditions mean something on TCGplayer; sort order means something on
+                         eBay. They are the same slot, named for whichever is in it. -->
+                    <span class="ask-l" id="filt-l">Condition</span>
+                    <div class="cb-set" id="cond-set" title="Toggle each condition on or off"></div>
+                    <div class="cb-set" id="sort-set" title="How eBay orders the results"></div>
+                </div>
+            </div>
+            <!-- Read-only. There is no frame to point it at any more, so it reports where the
+                 card lives rather than offering to go somewhere. -->
+            <div id="urlbar">
+                <span class="ub-lab">URL</span>
+                <input id="ub-input" spellcheck="false" readonly tabindex="-1"
+                       placeholder="the card you are looking at">
+                <button id="ub-copy" title="Copy the address">⧉</button>
+                <button id="open-tab" title="Open this address in a real tab">↗ Tab</button>
+            </div>
+        </div>
+        <!-- Which printing, over the prices rather than over the picture: it is the prices this
+             choice changes, so it belongs where they are. -->
+        <div id="alt-over">
+            <div class="ao-card">
+                <div class="ao-h">Which printing?
+                    <span class="ao-lang">
+                        <button data-lang="" class="on">All</button>
+                        <button data-lang="EN">EN</button>
+                        <button data-lang="JP">JP</button>
+                    </span>
+                    <button id="ao-x" title="Dismiss">✕</button></div>
+                <div class="ao-msg" id="ao-msg">Pick the one you meant — the prices below follow it.</div>
+                <div id="ao-list"></div>
+                <!-- The way out when a search cannot find it. Their catalogue holds printings a
+                     name search will not surface however deep it goes, and the address of the
+                     one you are looking at is exact where a name is a guess. -->
+                <div id="ao-manual">
+                    <div id="ao-paste">
+                        <input id="ao-url" placeholder="Paste the TCGplayer link, or its product number"
+                               spellcheck="false" autocomplete="off">
+                        <button id="ao-load" type="button">Manual search</button>
+                        <div class="ao-note" id="ao-pnote">Not in the list? Open the card on TCGplayer and copy the address bar.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <button id="alt-again" style="display:none">&#8593; View listings</button>
+        <!-- eBay's controls belong beside the figures they produce, not in a panel at the foot
+             of the other column where the sheet lives. -->
+        <div id="ebay-panel" hidden></div>
+        <button id="grab-page">&#8681; Save to database</button>
+        <div id="co-wrap">
+            <textarea id="co-paste" style="display:none" placeholder="Automatic grab didn't work — paste the copied TCGplayer page here instead."></textarea>
+            <textarea id="co-paste2" style="display:none" placeholder="Second paste box — drop the other eBay tab here (sold or active; it sorts itself out)."></textarea>
+            <div id="co-out">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="pick-back">
+  <div id="pick-modal">
+    <div class="pk-h"><span>Pull from your databases</span><span class="pk-sub" id="pk-src"></span></div>
+    <div class="pk-bar">
+      <select id="pk-db"></select>
+      <select id="pk-sheet"></select>
+      <input id="pk-q" placeholder="Filter rows…" autocomplete="off">
+    </div>
+    <div id="pk-list"></div>
+    <div class="pk-foot"><span class="pk-note" id="pk-note"></span><button class="btn ghost" id="pk-close">Close</button></div>
+  </div>
+</div>
+<div id="theme-pop"><div class="tp-h">Mode</div><div class="tp-modes"><button data-mode="dark">🌙 Dark</button><button data-mode="light">☀ Light</button></div><div class="tp-h">Accent</div><div class="tp-swatches"></div></div>
+<div id="toast"></div>
+<!-- Portrait only. Two panes, one at a time, and this says which — with a count on the sheet
+     so the number of cards saved is legible without going to look at them. -->
+<nav id="swap" aria-label="Switch view">
+    <button type="button" id="swap-find" class="on">Search</button>
+    <button type="button" id="swap-db">Database <span class="pip" id="swap-n"></span></button>
+</nav>
+<!-- The Card Scanner's detection and geometry, as they already are. OpenCV itself is not
+     touched until somebody actually opens the scanner. -->
+<script src="local-sheets.js"></script>
+<script src="cardscan-core.js"></script>
+<script src="cardscan-engine.js"></script>
+<script src="pokemon-names.js"></script>
+<script src="pokemon-autocomplete.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>

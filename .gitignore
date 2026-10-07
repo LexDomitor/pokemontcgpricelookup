@@ -1,0 +1,10 @@
+node_modules/
+.wrangler/
+.dev.vars*
+.env*
+!.env.example
+*.log
+playwright-report/
+test-results/
+tools/ebay-scanner/.profile*/
+tools/ebay-scanner/browser.json
