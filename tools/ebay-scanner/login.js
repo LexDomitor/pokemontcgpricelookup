@@ -1,3 +1,4 @@
+// Developed for Arcane 9 Labs by Alex Puh and Kyle He
 'use strict';
 // Opens the scanner's profile in an ORDINARY browser so you can sign into eBay normally.
 //

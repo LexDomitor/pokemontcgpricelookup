@@ -1,7 +1,7 @@
+// Developed for Arcane 9 Labs by Alex Puh and Kyle He
 function jsonResponse(obj, status, extraHeaders) {
   // no-store, on every API reply without exception. The _headers file cannot do this because it
   // only covers static assets, not anything the Worker generates - and an API response sitting
-  // in an edge cache is how one reader's gate token, prices or database rows get handed to the
   // next person who asks the same URL. Found the hard way: a stale /api/tcgsearch reply was
   // served from cache for minutes after a deploy.
   return new Response(JSON.stringify(obj), {
@@ -11,15 +11,15 @@ function jsonResponse(obj, status, extraHeaders) {
   });
 }
 
-const SB_CORS = {}; // Same-origin standalone application.
-const SB_EMBED_HOSTS = ['tcgplayer.com', 'ebay.com', 'google.com', 'pricecharting.com', 'pokemontcg.io'];
-async function sbHandleEmbedCheck(request, url) {
-  if (request.method === 'OPTIONS') return new Response(null, { headers: SB_CORS });
+const API_HEADERS = {'Access-Control-Allow-Origin':'*'}; // Public read-only prices, without credentials.
+const MARKET_HOSTS = ['tcgplayer.com', 'ebay.com', 'google.com', 'pricecharting.com', 'pokemontcg.io'];
+async function handleEmbedCheck(request, url) {
+  if (request.method === 'OPTIONS') return new Response(null, { headers: API_HEADERS });
   const target = url.searchParams.get('url') || '';
-  let t; try { t = new URL(target); } catch (_) { return jsonResponse({ error: 'bad url' }, 400, SB_CORS); }
-  if (t.protocol !== 'https:') return jsonResponse({ error: 'https only' }, 400, SB_CORS);
+  let t; try { t = new URL(target); } catch (_) { return jsonResponse({ error: 'bad url' }, 400, API_HEADERS); }
+  if (t.protocol !== 'https:') return jsonResponse({ error: 'https only' }, 400, API_HEADERS);
   const host = t.hostname.replace(/^www\./, '');
-  if (!SB_EMBED_HOSTS.some(h => host === h || host.endsWith('.' + h))) return jsonResponse({ error: 'host not allowed' }, 400, SB_CORS);
+  if (!MARKET_HOSTS.some(h => host === h || host.endsWith('.' + h))) return jsonResponse({ error: 'host not allowed' }, 400, API_HEADERS);
   try {
     const res = await marketFetch(t.toString(), { redirect: 'follow', headers: {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
@@ -34,8 +34,8 @@ async function sbHandleEmbedCheck(request, url) {
       xFrameOptions: xfo || null, frameAncestors: fa || null, botWall: bot, framable: framable && res.status < 400 && !bot,
       verdict: xfo ? ('blocked by X-Frame-Options: ' + xfo)
              : (fa ? ('restricted by CSP ' + fa) : (bot ? 'server answered with a bot/CAPTCHA wall' : (res.status >= 400 ? ('server refused: HTTP ' + res.status) : 'no framing header seen')))
-    }, 200, SB_CORS);
-  } catch (err) { return jsonResponse({ error: String(err && err.message || err), verdict: 'request failed from the server' }, 200, SB_CORS); }
+    }, 200, API_HEADERS);
+  } catch (err) { return jsonResponse({ error: String(err && err.message || err), verdict: 'request failed from the server' }, 200, API_HEADERS); }
 }
 
 const ALT_MAX = 80;
@@ -130,10 +130,10 @@ async function tcgSales(productId, conditions) {
 // to; that is blocked by the browser and no amount of listening to load events changes it. Doing
 // the search on our side sidesteps the problem entirely: we get the id directly, so choosing a
 // printing is one click rather than copying an address out of a frame.
-async function sbHandleTcgSearch(request, url) {
-  if (request.method === 'OPTIONS') return new Response(null, { headers: SB_CORS });
+async function handleTcgSearch(request, url) {
+  if (request.method === 'OPTIONS') return new Response(null, { headers: API_HEADERS });
   const q = (url.searchParams.get('q') || '').trim();
-  if (!q) return jsonResponse({ error: 'give a search term' }, 400, SB_CORS);
+  if (!q) return jsonResponse({ error: 'give a search term' }, 400, API_HEADERS);
   // ?jp=1 widens the search to the Japanese product line as well. Off by default so Price
   // Lookup keeps returning exactly what it always has.
   const wantJp = url.searchParams.get('jp') === '1';
@@ -153,7 +153,7 @@ async function sbHandleTcgSearch(request, url) {
     let hits;
     if (wantJp) {
       const [en, jp] = await Promise.all([many(['pokemon']), many(['pokemon-japan'])]);
-      if (!en && !jp) return jsonResponse({ error: 'TCGplayer search did not respond' }, 502, SB_CORS);
+      if (!en && !jp) return jsonResponse({ error: 'TCGplayer search did not respond' }, 502, API_HEADERS);
       hits = (en || []).concat(jp || []);
     } else {
       hits = await many(lines);
@@ -167,7 +167,7 @@ async function sbHandleTcgSearch(request, url) {
         seen.add(k); return true;
       });
     }
-    if (!hits) return jsonResponse({ error: 'TCGplayer search did not respond' }, 502, SB_CORS);
+    if (!hits) return jsonResponse({ error: 'TCGplayer search did not respond' }, 502, API_HEADERS);
 
     // TCGplayer's fuzzy search answers "Gastly 58/102" with Latios EX and Sabrina's Haunter,
     // because 58 matched their numbers. A preview list holding cards that are not the card you
@@ -205,18 +205,18 @@ async function sbHandleTcgSearch(request, url) {
       lang: /japan/i.test(String(p.productLineName || p.productLineUrlName || '')) ? 'JP' : 'EN',
       image: 'https://tcgplayer-cdn.tcgplayer.com/product/' + p.productId + '_in_200x200.jpg',
       url: 'https://www.tcgplayer.com/product/' + p.productId
-    })) }, 200, SB_CORS);
-  } catch (err) { return jsonResponse({ error: String(err && err.message || err) }, 502, SB_CORS); }
+    })) }, 200, API_HEADERS);
+  } catch (err) { return jsonResponse({ error: String(err && err.message || err) }, 502, API_HEADERS); }
 }
 
-async function sbHandleTcg(request, url) {
-  if (request.method === 'OPTIONS') return new Response(null, { headers: SB_CORS });
+async function handleTcg(request, url) {
+  if (request.method === 'OPTIONS') return new Response(null, { headers: API_HEADERS });
   const name = (url.searchParams.get('name') || '').trim();
   const number = (url.searchParams.get('number') || '').trim();
   const setCode = (url.searchParams.get('set') || '').trim().slice(0, 28);
   let productId = (url.searchParams.get('productId') || '').trim();
   const conditions = (url.searchParams.get('conditions') || '').split('|').map(s => s.trim()).filter(Boolean);
-  if (!name && !productId) return jsonResponse({ error: 'give a card name' }, 400, SB_CORS);
+  if (!name && !productId) return jsonResponse({ error: 'give a card name' }, 400, API_HEADERS);
   try {
     let product = null, alts = [], nameMismatch = false;
     if (!productId) {
@@ -301,13 +301,13 @@ async function sbHandleTcg(request, url) {
             tcgSearch(tries[ti], wantLines, 0), tcgSearch(tries[ti], wantLines, 1)]);
           got = (p0 || p1) ? (p0 || []).concat(p1 || []) : null;
         }
-        if (got === null) return jsonResponse({ error: 'TCGplayer search did not respond' }, 502, SB_CORS);
+        if (got === null) return jsonResponse({ error: 'TCGplayer search did not respond' }, 502, API_HEADERS);
         if (!got.length) continue;
         hits = got;
         named = got.filter(sameName);
         if (named.length) break;
       }
-      if (!hits.length) return jsonResponse({ error: 'No TCGplayer product matched that name', count: 0, listings: [], alts: [] }, 200, SB_CORS);
+      if (!hits.length) return jsonResponse({ error: 'No TCGplayer product matched that name', count: 0, listings: [], alts: [] }, 200, API_HEADERS);
 
       const pool = named.length ? named : [];
       // Among printings of the right card, the set code decides which one - that is the whole
@@ -340,7 +340,7 @@ async function sbHandleTcg(request, url) {
             image: 'https://tcgplayer-cdn.tcgplayer.com/product/' + p.productId + '_in_200x200.jpg',
             url: 'https://www.tcgplayer.com/product/' + p.productId
           }))
-        }, 200, SB_CORS);
+        }, 200, API_HEADERS);
       }
       productId = product.productId;
       // every printing that matched, so the page can offer them instead of you hunting in the frame
@@ -371,7 +371,7 @@ async function sbHandleTcg(request, url) {
       const un = await tcgListings(productId, []);
       if (un && (un.results || []).length) res = un;
     }
-    if (!res) return jsonResponse({ error: 'TCGplayer listings did not respond' }, 502, SB_CORS);
+    if (!res) return jsonResponse({ error: 'TCGplayer listings did not respond' }, 502, API_HEADERS);
     const listings = (res.results || []).map(l => {
       const ship = (l.sellerShippingPrice != null ? l.sellerShippingPrice : (l.shippingPrice || 0)) || 0;
       const price = +l.price || 0;
@@ -391,17 +391,17 @@ async function sbHandleTcg(request, url) {
                            image: product.productUrlName ? ('https://tcgplayer-cdn.tcgplayer.com/product/' + productId + '_in_200x200.jpg') : null } : null,
       url: 'https://www.tcgplayer.com/product/' + productId + (slug ? '/' + slug : ''),
       conditions: (res.aggregations && res.aggregations.condition) || []
-    }, 200, SB_CORS);
-  } catch (err) { return jsonResponse({ error: String(err && err.message || err) }, 502, SB_CORS); }
+    }, 200, API_HEADERS);
+  } catch (err) { return jsonResponse({ error: String(err && err.message || err) }, 502, API_HEADERS); }
 }
 
 // Card prices via the free Pokémon TCG API (carries TCGplayer's price block per card).
-async function sbHandleCardPrice(request, url) {
-  if (request.method === 'OPTIONS') return new Response(null, { headers: SB_CORS });
+async function handleCardPrice(request, url) {
+  if (request.method === 'OPTIONS') return new Response(null, { headers: API_HEADERS });
   const name = (url.searchParams.get('name') || '').trim();
   const set  = (url.searchParams.get('set')  || '').trim();
   const code = (url.searchParams.get('code') || '').trim();
-  if (!name && !set && !code) return jsonResponse({ error: 'give a name, set or code' }, 400, SB_CORS);
+  if (!name && !set && !code) return jsonResponse({ error: 'give a name, set or code' }, 400, API_HEADERS);
   const esc = s => '"' + String(s).replace(/["\\]/g, '') + '"';
   const num = code ? String(code).split('/')[0].trim().replace(/[^0-9a-zA-Z]/g, '') : '';
   // Punctuation and suffixes break exact matching ("Lillies Clefairy ex" never matches
@@ -416,7 +416,7 @@ async function sbHandleCardPrice(request, url) {
   if (pick && setQ) tries.push('name:' + pick + ' ' + setQ);
   if (pick) tries.push('name:' + pick);
   if (!name && num) tries.push([ setQ, 'number:' + esc(num) ].filter(Boolean).join(' '));
-  if (!tries.length) return jsonResponse({ error: 'give a name, set or code' }, 400, SB_CORS);
+  if (!tries.length) return jsonResponse({ error: 'give a name, set or code' }, 400, API_HEADERS);
 
   async function run(q) {
     const api = 'https://api.pokemontcg.io/v2/cards?pageSize=24&q=' + encodeURIComponent(q);
@@ -437,7 +437,7 @@ async function sbHandleCardPrice(request, url) {
       if (j) anyReply = true;
       if (j && (j.data || []).length) break;
     }
-    if (!anyReply) return jsonResponse({ error: 'The price source is not responding right now — try again in a moment.', query: q }, 502, SB_CORS);
+    if (!anyReply) return jsonResponse({ error: 'The price source is not responding right now — try again in a moment.', query: q }, 502, API_HEADERS);
     let data = (j && j.data) || [];
     // when we had to loosen the query, prefer rows whose number actually matches
     if (num && data.length > 1) {
@@ -453,25 +453,25 @@ async function sbHandleCardPrice(request, url) {
       prices: (c.tcgplayer && c.tcgplayer.prices) || null,
       cardmarket: (c.cardmarket && c.cardmarket.prices) ? { trend: c.cardmarket.prices.trendPrice, avg30: c.cardmarket.prices.avg30 } : null,
     }));
-    return jsonResponse({ query: q, count: cards.length, cards }, 200, SB_CORS);
-  } catch (err) { return jsonResponse({ error: String(err && err.message || err), query: q }, 502, SB_CORS); }
+    return jsonResponse({ query: q, count: cards.length, cards }, 200, API_HEADERS);
+  } catch (err) { return jsonResponse({ error: String(err && err.message || err), query: q }, 502, API_HEADERS); }
 }
 
 export async function handleApi(request){
  const url=new URL(request.url);
  if(request.method!=='GET')return jsonResponse({error:'GET only'},405,{'Allow':'GET'});
  if((url.searchParams.get('q')||'').length>300)return jsonResponse({error:'Search is too long'},400);
- if(url.pathname==='/api/tcg')return sbHandleTcg(request,url);
- if(url.pathname==='/api/tcgsearch')return sbHandleTcgSearch(request,url);
- if(url.pathname==='/api/cardprice')return sbHandleCardPrice(request,url);
- if(url.pathname==='/api/embedcheck')return sbHandleEmbedCheck(request,url);
+ if(url.pathname==='/api/tcg')return handleTcg(request,url);
+ if(url.pathname==='/api/tcgsearch')return handleTcgSearch(request,url);
+ if(url.pathname==='/api/cardprice')return handleCardPrice(request,url);
+ if(url.pathname==='/api/embedcheck')return handleEmbedCheck(request,url);
  return jsonResponse({error:'Not found'},404);
 }
 
 async function marketFetch(target,options={}){
  let url=new URL(target),opts={...options};
  for(let hop=0;hop<5;hop++){
-  if(url.protocol!=='https:'||!SB_EMBED_HOSTS.some(h=>url.hostname===h||url.hostname.endsWith('.'+h)))throw Error('Upstream host not allowed');
+  if(url.protocol!=='https:'||!MARKET_HOSTS.some(h=>url.hostname===h||url.hostname.endsWith('.'+h)))throw Error('Upstream host not allowed');
   const response=await fetch(url,{...opts,redirect:'manual',signal:AbortSignal.timeout(15000)});
   if(![301,302,303,307,308].includes(response.status))return response;
   const location=response.headers.get('location');await response.body?.cancel();if(!location)throw Error('Invalid upstream redirect');

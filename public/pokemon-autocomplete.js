@@ -1,15 +1,15 @@
-// Shared Pokémon name autocomplete / autocorrect for the Arcane 9 Labs tools.
-// Needs pokemon-names.js loaded first (window.SB_POKEMON).
+// Developed for Arcane 9 Labs by Alex Puh and Kyle He
+// Needs pokemon-names.js loaded first (window.PTCG_POKEMON).
 //
-//   SB_POKEAC.attach(inputEl)            – dropdown of species names + a "did you mean" hint
-//   SB_POKEAC.attach(el, { onPick })     – called with the chosen name
+//   PTCG_POKEAC.attach(inputEl)            – dropdown of species names + a "did you mean" hint
+//   PTCG_POKEAC.attach(el, { onPick })     – called with the chosen name
 //
 // Card names in the shop are things like "Charizard V" or "N's Zoroark EX", so this never rewrites
 // what you typed on its own — it completes the species word and offers a correction you have to accept.
 (function(){
 'use strict';
-if(!window.SB_POKEMON) return;
-var P = window.SB_POKEMON;
+if(!window.PTCG_POKEMON) return;
+var P = window.PTCG_POKEMON;
 
 function css(){
     if(document.getElementById('sb-poke-css')) return;
@@ -100,5 +100,5 @@ function attach(input, opts){
     window.addEventListener('resize',function(){ if(dd.classList.contains('on')) place(); });
 }
 
-window.SB_POKEAC = { attach:attach, head:head, replaceHead:replaceHead };
+window.PTCG_POKEAC = { attach:attach, head:head, replaceHead:replaceHead };
 })();

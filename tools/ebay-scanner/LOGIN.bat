@@ -1,3 +1,4 @@
+REM Developed for Arcane 9 Labs by Alex Puh and Kyle He
 @echo off
 title eBay Sign-in (scanner profile)
 cd /d "%~dp0"

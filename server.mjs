@@ -1,3 +1,4 @@
+// Developed for Arcane 9 Labs by Alex Puh and Kyle He
 import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {resolve,extname,sep} from 'node:path';

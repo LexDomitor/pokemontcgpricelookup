@@ -1,3 +1,4 @@
+// Developed for Arcane 9 Labs by Alex Puh and Kyle He
 // Card Scanner — pure pipeline geometry.
 //
 // Deliberately free of OpenCV, the DOM and any I/O: everything here is data in, data out, so it

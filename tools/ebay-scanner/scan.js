@@ -1,3 +1,4 @@
+// Developed for Arcane 9 Labs by Alex Puh and Kyle He
 'use strict';
 // Drives a real, visible Chrome window and reads the text off the eBay pages it lands on.
 //

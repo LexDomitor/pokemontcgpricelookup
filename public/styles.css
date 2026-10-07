@@ -1,3 +1,4 @@
+/* Developed for Arcane 9 Labs by Alex Puh and Kyle He */
 html.pre-light body{background:#fdfbf7;color:#171514}
 
     *{ margin:0; padding:0; box-sizing:border-box; }
@@ -1209,55 +1210,7 @@ html.pre-light body{background:#fdfbf7;color:#171514}
     #toast{ position:fixed; bottom:16px; left:50%; transform:translateX(-50%); background:var(--panel2); border:1px solid var(--border); border-radius:9px;
         padding:9px 17px; font-size:0.75rem; color:var(--text); opacity:0; transition:0.25s; pointer-events:none; z-index:120; }
     #toast.on{ opacity:1; }
-    /* ── who is here, and what is being said ────────────────────────────────
-       Both of these are the Lab's, brought across rather than reinvented: the
-       same endpoints, the same shapes, sized for a bar rather than a page. */
-    .pw-me{ display:flex; align-items:center; gap:8px; flex-shrink:0; text-decoration:none;
-            padding:3px 10px 3px 3px; border-radius:40px; border:1px solid var(--border);
-            background:var(--panel2); color:var(--text); }
-    .pw-me:hover{ border-color:var(--accent); }
-    .pw-me .pic{ width:26px; height:26px; border-radius:50%; flex-shrink:0;
-                 background:var(--field) center/cover no-repeat; border:1px solid var(--border);
-                 display:grid; place-items:center; font:700 0.6rem inherit; color:var(--accent);
-                 text-transform:uppercase; }
-    .pw-me .who{ display:flex; flex-direction:column; line-height:1.1; }
-    .pw-me .who b{ font-size:0.7rem; max-width:120px; overflow:hidden; text-overflow:ellipsis;
-                   white-space:nowrap; }
-    .pw-me .who i{ font-style:normal; font-size:0.5rem; letter-spacing:1.4px;
-                   text-transform:uppercase; color:var(--accent); }
-    .pw-msg{ position:relative; padding:0 9px; }
-    .pw-msg svg{ width:17px; height:17px; display:block; }
-    .pw-badge{ position:absolute; top:-5px; right:-5px; min-width:15px; height:15px; padding:0 4px;
-               border-radius:8px; background:var(--err); color:#fff; font:800 0.52rem inherit;
-               line-height:15px; text-align:center; }
-    #pw-chat{ position:fixed; inset:0; z-index:130; display:flex; align-items:flex-start;
-              justify-content:flex-end; padding:56px 14px 14px; background:rgba(0,0,0,0.42); }
-    #pw-chat[hidden]{ display:none; }
-    body.light #pw-chat{ background:rgba(23,21,20,0.22); }
-    .pw-card{ width:min(380px, 100%); max-height:min(70vh, 560px); display:flex;
-              flex-direction:column; border-radius:12px; border:1px solid var(--border);
-              background:var(--panel); box-shadow:0 20px 60px rgba(0,0,0,0.5); overflow:hidden; }
-    .pw-h{ display:flex; align-items:center; gap:7px; padding:8px 10px;
-           border-bottom:1px solid var(--border); background:var(--panel2); }
-    .pw-h b{ font-size:0.76rem; }
-    .pw-h .btn{ height:26px; padding:0 9px; font-size:0.58rem; }
-    .pw-log{ flex:1; min-height:0; overflow-y:auto; padding:10px; display:flex;
-             flex-direction:column; gap:8px; }
-    .pw-empty{ color:var(--dim); font-size:0.7rem; text-align:center; padding:18px 0; }
-    .pw-m{ display:flex; flex-direction:column; gap:2px; }
-    .pw-m .w{ font-size:0.56rem; letter-spacing:0.8px; text-transform:uppercase; color:var(--dim); }
-    .pw-m .t{ font-size:0.76rem; line-height:1.5; padding:7px 10px; border-radius:9px;
-              background:var(--panel2); border:1px solid var(--border); overflow-wrap:anywhere; }
-    .pw-m.mine{ align-items:flex-end; }
-    .pw-m.mine .t{ background:var(--accent-soft); border-color:var(--accent); }
-    .pw-bar{ display:flex; gap:7px; padding:9px 10px; border-top:1px solid var(--border);
-             background:var(--panel2); }
-    .pw-bar input{ flex:1; min-width:0; height:32px; border-radius:7px; padding:0 10px;
-                   border:1px solid var(--border); background:var(--field); color:var(--text);
-                   font:inherit; font-size:0.76rem; outline:none; }
-    .pw-bar input:focus{ border-color:var(--accent); }
-    body.mob .pw-me .who{ display:none; }
-    body.mob #pw-chat{ padding:52px 8px 8px; justify-content:center; }
+
     /* A card landing in the sheet is confirmed at the top of the window rather than the foot of
        it. The sheet itself is at the top, so that is where the eye already is; a notice at the
        bottom is a notice somebody has to go and look for. */

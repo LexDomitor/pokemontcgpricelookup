@@ -4,7 +4,7 @@ Run npm install and npm start in this folder. The web app runs on port 8788; thi
 
 Original helper usage notes follow.
 
-# SolarBeam eBay Scanner
+# SEARCHDOG eBay Scanner
 
 Reads eBay listing pages on this PC and feeds them to the Price Lookup page, so you don't have
 to Ctrl+A / Ctrl+C two tabs by hand.
@@ -107,4 +107,4 @@ node scan.js "cresselia lv x 103/106"
 - **Buy It Now returns 403** — check nothing has re-added an automation flag to `scan.js`.
 - **Everything returns 0 listings** — eBay restyled. The parser keys on the phrase
   "Opens in a new window or tab" and on `NN% positive (count)`; if those changed, `parseEbay()`
-  in `public/SolarBeam/price.html` needs updating, not this tool.
+  in `public/SEARCHDOG/price.html` needs updating, not this tool.

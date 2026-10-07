@@ -1,5 +1,6 @@
+REM Developed for Arcane 9 Labs by Alex Puh and Kyle He
 @echo off
-title SolarBeam eBay Scanner
+title SEARCHDOG eBay Scanner
 cd /d "%~dp0"
 if not exist node_modules\playwright-core (
   echo Installing dependencies, one moment...

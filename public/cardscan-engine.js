@@ -1,3 +1,4 @@
+// Developed for Arcane 9 Labs by Alex Puh and Kyle He
 // Card Scanner detection engine — shared by the developer page and the chat page.
 //
 // Lifted verbatim from cardscan.html so the chat front end does not re-derive any of it. The

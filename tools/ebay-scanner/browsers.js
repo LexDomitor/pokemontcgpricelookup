@@ -1,3 +1,4 @@
+// Developed for Arcane 9 Labs by Alex Puh and Kyle He
 'use strict';
 // Finds a Chromium-based browser already on this machine.
 //

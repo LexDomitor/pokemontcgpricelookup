@@ -1,9 +1,9 @@
+<!-- Developed for Arcane 9 Labs by Alex Puh and Kyle He -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 
-<script>/* The style, before anything is painted — the same key the Lab writes, so a preference
-   set there is already in force when this opens. Cassette unless the account says Legacy. */
+<script>
 (function(){try{var t=localStorage.getItem('ptcg-style');
 if(t!=='dark')document.documentElement.className+=' pre-light';}catch(e){}})();</script>
 
@@ -19,7 +19,7 @@ if(t!=='dark')document.documentElement.className+=' pre-light';}catch(e){}})();<
          beside the figures it produces, which is where you are already looking. -->
     <div id="lookup">
 
-        <div id="title">Arcane 9 Labs <span>|</span> <b>SEARCHDOG</b> <span>|</span>
+        <div id="title"><b>SEARCHDOG</b> <span>|</span>
              Price Lookup, Tracker &amp; Metrics</div>
         <span class="sp"></span>
         <!-- Guided is the search now rather than one of two, so there is nothing to switch
@@ -61,7 +61,6 @@ if(t!=='dark')document.documentElement.className+=' pre-light';}catch(e){}})();<
                            value="Saved cards" title="What this sheet is called">
                     <span class="lg-id" id="lg-id" title="This sheet’s id"></span>
                     <button id="lg-live" title="Save a named copy in this browser">◌ Save sheet</button>
-                    <button id="lg-ro" hidden title="Stop anybody else writing over it">Read only</button>
                     <span class="sp"></span>
                     <!-- How fresh the figures are, where the thing that refreshes them is. -->
                     <span id="lg-fresh" title="Nothing has been synced yet">&#9679;</span>

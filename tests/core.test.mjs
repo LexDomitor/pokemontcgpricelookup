@@ -36,3 +36,11 @@ test('full name lookup resolves alternatives, listing totals and sale history',a
  const r=await handleApi(new Request('http://localhost/api/tcg?name=Pikachu'));const d=await r.json();assert.equal(r.status,200,JSON.stringify(d));assert.equal(d.product.name,'Pikachu');assert(d.alts.length>0);assert.equal(d.listings[0].total,12);assert.equal(d.sales[0].total,13);
  }finally{globalThis.fetch=original;}
 });
+
+test('main files carry attribution and have no legacy backend or account routes',async()=>{
+ const credit='Developed for Arcane 9 Labs by Alex Puh and Kyle He';
+ for(const name of ['index.html','public/index.html','public/app.js','public/styles.css','public/api.mjs','public/config.js','public/_worker.js','public/local-sheets.js','public/cardscan-engine.js','public/cardscan-core.js','public/pokemon-autocomplete.js','public/pokemon-names.js','server.mjs']){
+  const text=await readFile(new URL('../'+name,import.meta.url),'utf8');assert(text.split('\n')[0].includes(credit),name);assert(!/arcane9labs\.pages\.dev|chronovist\.pages\.dev|\/api\/(auth|me|msg)|sb_gate_token/.test(text),name);
+ }
+ const r=await handleApi(new Request('https://prices.example/api/tcgsearch'));assert.equal(r.headers.get('Access-Control-Allow-Origin'),'*');
+});

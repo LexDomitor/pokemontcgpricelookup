@@ -1,3 +1,4 @@
+// Developed for Arcane 9 Labs by Alex Puh and Kyle He
 'use strict';
 // The local half of Price Lookup. Serves one endpoint on 127.0.0.1 that the deployed page calls;
 // the page then runs its own parser on the text it gets back.
@@ -55,7 +56,7 @@ const server = http.createServer(async (req, res) => {
         const pick = live || browsers.preferred();  // otherwise, what the next scan will use
         res.writeHead(200, head);
         return res.end(JSON.stringify({
-            ok: true, name: 'solarbeam-ebay-scanner', version: 2, busy,
+            ok: true, name: 'price-lookup-ebay-scanner', version: 2, busy,
             browser: pick ? { id: pick.id, label: pick.label, running: !!live } : null,
             available: browsers.available().map(b => ({ id: b.id, label: b.label }))
         }));
@@ -122,7 +123,7 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, '127.0.0.1', () => {
     console.log('');
-    console.log('  SolarBeam eBay scanner');
+    console.log('  SEARCHDOG eBay scanner');
     console.log('  listening on http://127.0.0.1:' + PORT);
   const list=browsers.available(), pick=browsers.preferred();
   console.log('  browser:     ' + (pick?pick.label:'NONE FOUND — install Chrome, Edge or Brave'));
