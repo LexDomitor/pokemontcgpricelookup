@@ -11,11 +11,9 @@
     "start": "node server.mjs",
     "test": "node --test tests/*.test.mjs",
     "test:browser": "node tests/browser.mjs",
-    "dev:cloudflare": "wrangler pages dev public --port 8788",
-    "deploy:cloudflare": "wrangler pages deploy public --project-name pokemontcgpricelookup"
+    "test:pages": "node tests/pages.browser.mjs"
   },
   "devDependencies": {
-    "playwright-core": "1.58.2",
-    "wrangler": "4.131.0"
+    "playwright-core": "1.58.2"
   }
 }

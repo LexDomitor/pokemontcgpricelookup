@@ -1,9 +1,6 @@
 // Developed for Arcane 9 Labs by Alex Puh and Kyle He
 function jsonResponse(obj, status, extraHeaders) {
-  // no-store, on every API reply without exception. The _headers file cannot do this because it
-  // only covers static assets, not anything the Worker generates - and an API response sitting
-  // next person who asks the same URL. Found the hard way: a stale /api/tcgsearch reply was
-  // served from cache for minutes after a deploy.
+  // API responses must not be cached.
   return new Response(JSON.stringify(obj), {
     status: status || 200,
     headers: Object.assign({ 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },

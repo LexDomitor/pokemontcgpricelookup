@@ -14,9 +14,11 @@ const state={ theme:{ mode:startMode, accent:'gold' }, src:'tcgplayer', lang:'bo
     ebaySold:false, ebaySort:'low', ebayMode:'manual' };   // eBay redirects sold searches to sign-in, so active is the default
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 // Never let an HTML error page surface as a raw JSON parse error.
-// The standalone Node server and Cloudflare adapter provide the same-origin price API.
-const API_BASE = String(window.PRICE_LOOKUP_CONFIG?.apiBase || '').replace(/\/$/, '');
+// Static hosting uses public summaries; Node provides the full marketplace lookup.
+const STATIC_PRICES = window.PRICE_LOOKUP_CONFIG?.mode === 'browser';
+const API_BASE = '';
 async function getJSON(url, opts){
+    if(STATIC_PRICES || /productId=ptcg(?:%3A|:)/i.test(url)) return window.BrowserPrices.getJSON(url);
     const full = (API_BASE && url.charAt(0)==='/') ? API_BASE+url : url;
     let r, t;
     try{ r=await fetch(full, opts||{}); t=await r.text(); }
@@ -97,15 +99,16 @@ function syncSaveBtn(){
     const gp=$('grab-page'); if(!gp) return;
     const got = state.src==='ebay'
         ? _ebayBuilt
-        : !!((_offers && _offers.length) || (_sales && _sales.length));
+        : !!(_meta?.snapshot || (_offers && _offers.length) || (_sales && _sales.length));
     gp.hidden = !got;
 }
 function syncSrcUI(){
     const isEbay = state.src==='ebay';
     const c=$('cond-set'), o=$('sort-set'), l=$('filt-l');
-    if(c) c.style.display = isEbay ? 'none' : '';
+    if(c) c.style.display = isEbay || STATIC_PRICES ? 'none' : '';
+    if(STATIC_PRICES && !isEbay) state.lang='en';
     if(o) o.style.display = isEbay ? '' : 'none';
-    if(l) l.textContent = isEbay ? 'Sort by' : 'Condition';
+    if(l) l.textContent = isEbay ? 'Sort by' : STATIC_PRICES ? 'English market summaries (USD)' : 'Condition';
     // The eBay panel and the sheet share the left column; the class decides which is showing.
     document.body.classList.toggle('ebay', isEbay);
     ebPre();
@@ -113,7 +116,7 @@ function syncSrcUI(){
     /* Korean and Chinese are not TCGplayer product lines, so they cannot be searched there —
        on eBay a language is just another word in the query, so all four are offered. */
     document.querySelectorAll('#lang-seg button').forEach(b=>{
-        const only = b.dataset.lang==='kr' || b.dataset.lang==='cn';
+        const only = b.dataset.lang==='kr' || b.dataset.lang==='cn' || (STATIC_PRICES && !isEbay && b.dataset.lang!=='en');
         // Both is a TCGplayer idea. An eBay search is a string of words, and "both" is not a word
         // that narrows anything — the language has to be one of the four.
         const hide = (only && !isEbay) || (b.dataset.lang==='both' && isEbay);
@@ -1071,6 +1074,16 @@ function renderOffers(offers, sales, meta){
             +(_meta.total?(' · '+_meta.total+' listings'):'')+'</div>';
         out.appendChild(h);
     }
+    if(_meta?.snapshot){
+        const box=document.createElement('div');box.className='co-prod';
+        box.innerHTML='<p>TCGplayer market summary via Pokemon TCG API (USD). Updated: '+esc(_meta.priceUpdated||'unknown')+'</p>'
+          +'<label>Printing variant <select id="snapshot-variant">'+(_meta.priceVariants||[]).map(v=>'<option value="'+esc(v.key)+'"'+(v.key===_meta.priceVariant?' selected':'')+'>'+esc(v.label)+'</option>').join('')+'</select></label>'
+          +'<p>'+(_meta.market==null?'No market price is available for this printing.':'Market: <b>$'+Number(_meta.market).toFixed(2)+'</b>')+'</p>'
+          +'<p>Published summaries, not individual offers or recent sales. Run locally with npm start for those. English catalog; prices are not condition-filtered.</p>';
+        out.appendChild(box);
+        box.querySelector('select').addEventListener('change',e=>loadProduct('ptcg:'+_meta.cardId+':'+e.target.value,_meta.url));
+        return;
+    }
     // Say how many were read versus how many are on screen, so a cap never looks like a short read.
     const cap=(base, all, extra)=>{
         const n=Math.min(all.length, SHOW_N);
@@ -1295,7 +1308,8 @@ async function grabPage(){
         return;
     }
     applyTcg(d);
-    toast((d.listings||[]).length+' listings · '+((d.sales||[]).length)+' sales');
+    if(d.product?.snapshot) toast('Published market summary loaded');
+    else toast((d.listings||[]).length+' listings · '+((d.sales||[]).length)+' sales');
 }
 /* The button used to scrape the framed page, because that was the only way to get at what the
    frame was showing. There is no frame now and the figures come from the API, so it saves what
@@ -1417,15 +1431,15 @@ function applyTcg(d, keepAlts){
     /* The id, the picture and the link travel with it now — the sheet needs to be able to
        show a card and open it later, and the summary panel was the only thing that ever
        read this. */
-    const m = d.product ? { name:d.product.name, set:d.product.set, market:d.product.market,
+    const m = d.product ? { ...d.product, name:d.product.name, set:d.product.set, market:d.product.market,
                             total:d.total, number:d.product.number||'',
                             /* The catalogue knows more than the price. Carried through so a
                                saved card can say what it is, not only what it costs. */
                             setCode:d.product.setCode||'', rarity:d.product.rarity||'',
                             kind:d.product.kind||'',
                             productId:d.productId||'', url:d.url||'',
-                            image:d.productId ? ('https://tcgplayer-cdn.tcgplayer.com/product/'
-                                    +d.productId+'_in_200x200.jpg') : '' } : null;
+                            image:d.product.image || (d.productId && /^\d+$/.test(String(d.productId)) ? ('https://tcgplayer-cdn.tcgplayer.com/product/'
+                                    +d.productId+'_in_200x200.jpg') : '') } : null;
     const sales=(d.sales||[]).map(x=>({ price:x.price, ship:x.ship, total:x.total, qty:x.qty, condition:x.condition, date:x.date }));
     /* When several printings matched, the search has not answered the question yet — it has
        narrowed it. Drawing the first one's figures while the list of printings was still on its
@@ -1464,6 +1478,7 @@ async function grabAll(){
         toast((d.alts.length) + ' printings matched \u2014 pick the one you meant');
         return;
     }
+    if(d.product?.snapshot){toast('Published market summary loaded');return;}
     toast(nl||ns ? (nl+' listings · '+ns+' recent sales'
                     + (!nl && ns ? ' · none on sale right now' : ''))
                  : 'No figures for that one');
@@ -1531,7 +1546,7 @@ function lgFigures(offers, sales){
     const out = [];
     // Ours goes first, because it is the one that answers the question being asked.
     const fv = fairValue(lo, sa);
-    if(fv != null) out.push({ k:'Fair market (A9)', v:fv,
+    if(fv != null) out.push({ k:'Fair market', v:fv,
                               note:(lo.length + sa.length) + ' figures' });
     if(lo.length){
         out.push({ k:'Lowest listing', v:lo[0], note:'of ' + lo.length });
@@ -1581,9 +1596,11 @@ function saveCardData(){
     const name = m.name || queryString();
     if(!name){ toast('Look a card up first.', true); return; }
     const fig = lgFigures(_offers, _sales);
+    if(m.snapshot && m.market!=null) fig.picks.unshift({k:"Published market ("+m.priceVariant+")",v:m.market});
     const row = {
         id: 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2,5),
         pid: m.productId || _altId || '',
+        snapshot:!!m.snapshot, priceVariant:m.priceVariant||'', priceUpdated:m.priceUpdated||'',
         name: name, set: m.set || '', num: m.number || '',
         image: m.image || (m.productId ? ('https://tcgplayer-cdn.tcgplayer.com/product/'
                 + m.productId + '_in_200x200.jpg') : ''),
@@ -1666,7 +1683,7 @@ function decideModels(rows){
         return sa.length ? Math.min.apply(null, sa) : null;
     };
     const defs = [
-        ['fair',   'Fair market (A9)', 'the middle of both sides, weighted to what sold'],
+        ['fair',   'Fair market', 'the middle of both sides, weighted to what sold'],
         ['low',    'Lowest available', 'the cheapest thing on sale right now'],
         ['sold',   'Lowest sold',      'the cheapest of what actually sold'],
         ['soldhi', 'Highest sold',     'the dearest of what actually sold'],
@@ -1995,7 +2012,7 @@ function wizPaint(){
     if(wizStep === 3){
         const isEbay = state.src === 'ebay';
         const langs = isEbay ? [['en','EN'],['jp','JP'],['kr','KR'],['cn','CN']]
-                             : [['both','Both'],['en','EN'],['jp','JP']];
+                             : STATIC_PRICES ? [['en','EN']] : [['both','Both'],['en','EN'],['jp','JP']];
         /* "A little more detail" over a smaller line naming the card said two things where one
            would do. The card and the shop are the heading. */
         let h = '<div class="wz-t">' + esc(q) + ' on '
@@ -2025,6 +2042,8 @@ function wizPaint(){
                    + ' title="' + esc(note) + '"><b>' + label + '</b><s>' + esc(note) + '</s></button>';
             });
             h += '</div></div>';
+        } else if(STATIC_PRICES){
+            h += '<p>English market summaries via Pokemon TCG API. No condition filters or individual sale transactions.</p>';
         } else {
             // As many as you like, or none at all, which is every condition rather than no cards.
             h += '<div class="wz-node"><i><b>2</b>Condition</i><div class="wz-seg" id="wz-cond">';
@@ -3505,9 +3524,9 @@ function lgOpenPanel(r){
         const fb = document.createElement('button');
         fb.type = 'button'; fb.className = 'lg-fair'; fb.dataset.v = fair;
         fb.title = FAIR_WHY;
-        fb.innerHTML = '<i>Fair market (A9)</i><b>' + money(fair) + '</b>'
+        fb.innerHTML = '<i>Fair market</i><b>' + money(fair) + '</b>'
                      + '<u>offers and sold, weighted to sold</u>';
-        fb.addEventListener('click', () => pick(fair, 'Fair market (A9)'));
+        fb.addEventListener('click', () => pick(fair, 'Fair market'));
         paneL.appendChild(fb);
     }
     const two = document.createElement('div');
@@ -3836,6 +3855,12 @@ function lgFlash(id, which){
     lgTotals();
 }
 // Its figures again, without leaving the sheet or losing the row.
+function updateSnapshot(r,p){
+ r.priceUpdated=p.priceUpdated;r.at=Date.now();
+ if(r.marketFrom && !r.marketFrom.startsWith('Published market ('))return false;
+ if(p.market==null)return false;
+ const changed=r.market!==p.market;r.market=p.market;r.marketFrom='Published market ('+p.priceVariant+')';reprice(r);return changed;
+}
 async function refreshRow(r, btn){
     if(!r.pid) return;
     const was = btn.textContent;
@@ -3846,6 +3871,7 @@ async function refreshRow(r, btn){
         if((state.conds||[]).length) p2.set('conditions', state.conds.join('|'));
         const d = await getJSON('/api/tcg?' + p2.toString());
         if(d && !d.error){
+            if(d.product?.snapshot){updateSnapshot(r,d.product);lgSave();lgPaint();toast('Market summary refreshed');return;}
             const nums = l => (l||[]).map(o => +o.total).filter(n => isFinite(n) && n > 0).sort((a,b)=>a-b);
             r.listings = nums(d.listings);
             r.sales = nums(d.sales);
@@ -4229,7 +4255,7 @@ const MARKET_RULE = {
     sold:   (lo, sa) => sa.length ? Math.min.apply(null, sa) : null,
     soldhi: (lo, sa) => sa.length ? Math.max.apply(null, sa) : null
 };
-const RULE_NAME = { fair:'Fair market (A9)', low:'lowest available',
+const RULE_NAME = { fair:'Fair market', low:'lowest available',
                     sold:'lowest sold recent', soldhi:'highest recent sold' };
 /* Rows saved before there was a rule to record carry only the words, so the words map back.
    Anything else — a figure typed in, or a price taken off one particular listing — is a decision
@@ -4255,7 +4281,7 @@ async function applyPricing(how){
     rows.forEach(r => {
         const lo = r.listings || [], sa = r.sales || [];
         let v = null, from = '';
-        if(how === 'fair'){ v = fairValue(lo, sa); from = 'Fair market (A9)'; }
+        if(how === 'fair'){ v = fairValue(lo, sa); from = 'Fair market'; }
         else if(how === 'low'){ v = lo.length ? Math.min.apply(null, lo) : null; from = 'lowest available'; }
         else if(how === 'soldhi'){ v = sa.length ? Math.max.apply(null, sa) : null; from = 'highest recent sold'; }
         else { v = sa.length ? Math.min.apply(null, sa) : null; from = 'lowest sold recent'; }
@@ -4333,6 +4359,7 @@ $('lg-sync').addEventListener('click', async () => {
             if((state.conds||[]).length) q.set('conditions', state.conds.join('|'));
             const d = await getJSON('/api/tcg?' + q.toString());
             if(!d || d.error){ failed++; }
+            else if(d.product?.snapshot){if(updateSnapshot(r,d.product))moved++;else kept++;}
             else {
                 const nums = l => (l||[]).map(o => +o.total)
                     .filter(n => isFinite(n) && n > 0).sort((a,b) => a-b);

@@ -1,7 +1,5 @@
 // Developed for Arcane 9 Labs by Alex Puh and Kyle He
-// GitHub Pages calls this project's independent public pricing backend.
-// Direct Cloudflare and local Node hosting use the bundled same-origin API.
+// The root static entry queries the public card API directly; npm start uses Node.
 window.PRICE_LOOKUP_CONFIG = {
-  apiBase: document.documentElement.dataset.hosting === 'github-pages'
-    ? 'https://pokemontcgpricelookup.pages.dev' : ''
+ mode: document.documentElement.dataset.hosting === 'github-pages' ? 'browser' : 'server'
 };
