@@ -2,6 +2,14 @@
 
 Standalone extraction of the Arcane 9 Labs price lookup module. Includes guided TCGplayer and eBay lookups, English/Japanese search, condition filters, price statistics, a card ledger, named saved sheets, photo card detection, and spreadsheet/image/JSON exports.
 
+## GitHub Pages
+
+A root index.html and .nojekyll are included. In GitHub, open Settings > Pages, choose Deploy from a branch, then main and / (root), and Save.
+
+The project URL is https://lexdomitor.github.io/pokemontcgpricelookup/ once Pages finishes publishing. GitHub gives project repositories a path under your account's github.io site, rather than a separate subdomain per repository.
+
+GitHub Pages cannot run a server. Its root entry uses the existing public Arcane 9 Labs pricing API for live prices; local saved sheets and OCR stay in the browser. No login or credentials are sent. To use an independent backend instead, deploy the included Cloudflare project and change apiBase in public/config.js to that HTTPS origin (the backend must allow your Pages origin through CORS). Local Node and direct Cloudflare hosting continue using their own same-origin API.
+
 ## Run locally
 
 Requires Node.js 20 or newer. No credentials or install step are needed for the local web server:
@@ -27,7 +35,7 @@ Create the Pages project only once. The public folder is the publish directory; 
 
 - Named sheets and the current ledger live in this browser's localStorage. They are not cloud backups; export important work before clearing browser data or switching devices.
 - Save sheet keeps a named local copy and updates it as you edit. Clicking Saved locally removes that saved copy after confirmation; the open ledger remains. Load database opens previously saved local copies.
-- Site login, visitors, chat, administrative controls and shared account databases are excluded. There are no requests back to the Arcane 9 Labs backend.
+- Site login, visitors, chat, administrative controls and shared account databases are excluded. Local Node and direct Cloudflare hosting are independent of the Arcane 9 Labs backend. The GitHub Pages entry uses its public pricing API as described above.
 - The existing card detector and OCR routines now use local Tesseract instead of the site's account-bound Cloudflare AI models. OpenCV and Tesseract download on demand from public CDNs; images are processed on the device. The reader is English-oriented and all detected fields remain editable. Review OCR before pricing.
 - TCGplayer pricing uses the same unofficial public marketplace endpoints as the original module. Availability and results depend on those upstream services. Prices can be missing, stale, or blocked; they are not guaranteed valuations.
 - eBay supports the original manual paste workflow. For automated scanning, see tools/ebay-scanner/README.md. That optional helper opens a separate browser profile and stays on localhost. No browser profiles, login sessions or credentials are included.

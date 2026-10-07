@@ -1,0 +1,9 @@
+import {createServer} from 'node:http';
+import {readFile} from 'node:fs/promises';
+import {resolve,extname,sep} from 'node:path';
+import {chromium} from 'playwright-core';
+import assert from 'node:assert/strict';
+const root=resolve('.'),prefix='/pokemontcgpricelookup/';
+const server=createServer(async(req,res)=>{try{let name=new URL(req.url,'http://localhost').pathname;if(!name.startsWith(prefix))throw Error();name=name.slice(prefix.length)||'index.html';if(name!=='index.html'&&!name.startsWith('public/'))throw Error();const file=resolve(root,name);if(!file.startsWith(root+sep))throw Error();res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml'})[extname(file)]||'application/octet-stream');res.end(await readFile(file));}catch{res.writeHead(404);res.end();}});
+await new Promise(r=>server.listen(0,'127.0.0.1',r));const browser=await chromium.launch({executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:true});
+try{const page=await browser.newPage(),errors=[],missing=[];page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.url().includes('127.0.0.1')&&r.status()>=400)missing.push(r.url());});await page.goto('http://127.0.0.1:'+server.address().port+prefix);await page.locator('[data-do="look"]').click();await page.locator('#wz-q').fill('Pikachu');assert.equal(await page.evaluate(()=>PRICE_LOOKUP_CONFIG.apiBase),'https://arcane9labs.pages.dev');assert.equal(await page.locator('link[rel="stylesheet"]').evaluate(el=>el.sheet.cssRules.length>0),true);assert.deepEqual(errors,[]);assert.deepEqual(missing,[]);console.log('GitHub Pages root and project-relative assets passed.');}finally{await browser.close();await new Promise(r=>server.close(r));}

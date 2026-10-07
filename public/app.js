@@ -16,7 +16,7 @@ const state={ theme:{ mode:startMode, accent:'gold' }, src:'tcgplayer', lang:'bo
 const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 // Never let an HTML error page surface as a raw JSON parse error.
 // The standalone Node server and Cloudflare adapter provide the same-origin price API.
-const API_BASE = ''; // Standalone, same-origin API.
+const API_BASE = String(window.PRICE_LOOKUP_CONFIG?.apiBase || '').replace(/\/$/, '');
 async function getJSON(url, opts){
     const full = (API_BASE && url.charAt(0)==='/') ? API_BASE+url : url;
     let r, t;
