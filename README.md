@@ -56,4 +56,4 @@ Optional live OCR check: `node tests/ocr.browser.mjs` downloads public OCR libra
 
 Browser tests use installed Chrome on Windows by default. Set CHROME_PATH for another Chrome/Chromium installation. Test price responses are fixtures; live upstream availability is a separate check.
 
-Pokemon, TCGplayer and eBay marks belong to their respective owners; this tool is independent of those services.
+Pokemon, TCGplayer, and eBay marks belong to their respective owners; this tool is independent of those services.
