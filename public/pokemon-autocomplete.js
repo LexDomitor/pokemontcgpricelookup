@@ -3,9 +3,7 @@
 //
 //   PTCG_POKEAC.attach(inputEl)            – dropdown of species names + a "did you mean" hint
 //   PTCG_POKEAC.attach(el, { onPick })     – called with the chosen name
-//
-// Card names in the shop are things like "Charizard V" or "N's Zoroark EX", so this never rewrites
-// what you typed on its own — it completes the species word and offers a correction you have to accept.
+
 (function(){
 'use strict';
 if(!window.PTCG_POKEMON) return;
@@ -26,7 +24,8 @@ function css(){
     document.head.appendChild(s);
 }
 
-// The species word is usually the first token — "Charizard VMAX" -> "Charizard".
+// species word is usually the first token
+// "Charizard VMAX" -> "Charizard"
 function head(v){ return String(v||'').trim().split(/\s+/)[0] || ''; }
 function replaceHead(v, name){
     var t=String(v||'').trim(), parts=t.split(/\s+/);
